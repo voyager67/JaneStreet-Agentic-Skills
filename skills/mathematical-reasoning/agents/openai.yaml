@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mathematical Reasoning"
+  short_description: "Build and verify rigorous mathematical arguments"
+  default_prompt: "Use the mathematical-reasoning skill to solve or prove this carefully. State assumptions, justify each important step, check edge cases, and verify the result. Use guided practice only when I ask to learn or practise."
+policy:
+  allow_implicit_invocation: true

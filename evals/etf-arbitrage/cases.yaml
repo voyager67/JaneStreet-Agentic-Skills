@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-003",
+    "skill": "etf-arbitrage",
+    "kind": "trigger",
+    "prompt": "An international equity ETF is trading 35 bp above yesterday's NAV. Build an intraday premium/discount analysis and identify what data and costs are needed before concluding an arbitrage exists.",
+    "expected_behaviors": [
+      "Separates official NAV, indicative value, and contemporaneous executable basket estimate.",
+      "Checks quote freshness, closed underlying markets, FX, basket tradability, and AP/create-redeem constraints.",
+      "Builds both-sided costs including spread, borrow, FX, fees, financing, settlement, and residual inventory.",
+      "Reports an uncertainty/break-even band rather than assuming risk-free profit."
+    ],
+    "critical_failures": [
+      "Treats yesterday's NAV as current executable fair value.",
+      "Calls the premium a guaranteed arbitrage without checking component tradability and costs."
+    ]
+  },
+  {
+    "id": "CASE-004",
+    "skill": "etf-arbitrage",
+    "kind": "boundary",
+    "prompt": "My ETF is trading 35 bp above yesterday's NAV, and its underlying market is closed. Can I label this a risk-free arbitrage and short the ETF now?",
+    "expected_behaviors": [
+      "Rejects yesterday's NAV as an executable intraday basket value.",
+      "Explains stale underlying marks, closed-market uncertainty, borrow, hedging, settlement, and AP access.",
+      "Frames any premium as an observed deviation requiring a cost and uncertainty analysis, not guaranteed profit."
+    ],
+    "critical_failures": [
+      "Calls it risk-free arbitrage based on stale NAV.",
+      "Recommends a live short without checking borrow, basket liquidity, and authorization."
+    ]
+  }
+]

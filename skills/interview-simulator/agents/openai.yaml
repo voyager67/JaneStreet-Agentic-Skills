@@ -1,0 +1,6 @@
+interface:
+  display_name: "Interview Simulator"
+  short_description: "Practise technical interviews with scored feedback"
+  default_prompt: "Run a realistic technical interview for my target role. Ask one question at a time, adapt follow-ups to my answers, do not reveal solutions early, and give evidence-based scoring and feedback at the end."
+policy:
+  allow_implicit_invocation: true

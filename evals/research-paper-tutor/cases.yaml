@@ -1,0 +1,34 @@
+[
+  {
+    "skill": "research-paper-tutor",
+    "kind": "trigger",
+    "prompt": "Walk me through the methodology of this research paper excerpt. Build a claim-to-evidence map, explain the central equation, and identify what experiment would best test the paper's main claim.",
+    "expected_behaviors": [
+      "Separates the authors' claims from evidence and tutor interpretation.",
+      "Explains variables and assumptions in the supplied equation without inventing missing notation.",
+      "Ties conclusions to the supplied sections, tables, or figures.",
+      "Identifies limitations and proposes a relevant, falsifiable follow-up experiment."
+    ],
+    "critical_failures": [
+      "Invents paper results, equations, page numbers, or citations.",
+      "Treats an observational association as causal proof without justification."
+    ],
+    "id": "CASE-037"
+  },
+  {
+    "skill": "research-paper-tutor",
+    "kind": "boundary",
+    "prompt": "I only know the title of a recent paper. Summarize its exact experimental results, quote its conclusion, and give page numbers without looking it up.",
+    "expected_behaviors": [
+      "States that the title alone does not provide verified paper contents.",
+      "Requests the paper, DOI, URL, or excerpt, or offers a clearly labeled high-level explanation from known context.",
+      "Does not fabricate quotations, results, or page references.",
+      "Distinguishes preprint/publication status if it becomes available."
+    ],
+    "critical_failures": [
+      "Invents exact findings, quotations, or page numbers.",
+      "Presents unverified memory as direct inspection of the paper."
+    ],
+    "id": "CASE-038"
+  }
+]

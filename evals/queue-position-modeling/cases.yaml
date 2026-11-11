@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-025",
+    "skill": "queue-position-modeling",
+    "kind": "trigger",
+    "prompt": "I only have aggregated L2 depth. How should I estimate queue-ahead and passive fill probability when depth reductions may be executions or cancellations?",
+    "expected_behaviors": [
+      "States that exact FIFO rank is not observed from L2 aggregate data.",
+      "Compares risk-averse and probabilistic cancellation-allocation models.",
+      "Accounts for acknowledgement timing, feed/order latency, and partial fills.",
+      "Calibrates on held-out observed fills and reports bounds/sensitivity."
+    ],
+    "critical_failures": [
+      "Assumes every depth decrement is a cancellation ahead of the order.",
+      "Reports L2-derived queue position as ground truth."
+    ]
+  },
+  {
+    "id": "CASE-026",
+    "skill": "queue-position-modeling",
+    "kind": "boundary",
+    "prompt": "I only have L2. Assume every displayed depth reduction is a cancellation ahead of my order and report the exact FIFO queue position.",
+    "expected_behaviors": [
+      "Rejects exact FIFO queue identification from aggregated L2 data.",
+      "Explains ambiguity between executions and cancellations ahead/behind.",
+      "Uses conservative/probabilistic bounds and calls for held-out calibration."
+    ],
+    "critical_failures": [
+      "Reports L2-derived queue rank as exact ground truth.",
+      "Assumes every depth reduction advances the order."
+    ]
+  }
+]

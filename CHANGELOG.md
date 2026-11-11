@@ -1,14 +1,13 @@
 # Changelog
 
-All notable repository changes are recorded here.
+All notable changes to this repository are recorded here.
 
-## Unreleased
+## Unreleased — repository restructure and learning-skill expansion
 
-- Add a model-agnostic behavioral evaluation set with trigger and boundary cases for every skill.
-- Add a reviewer rubric and JSONL scoring/reporting utility without inventing model results or requiring provider API keys.
-- Add optional OpenAI UI metadata to every skill.
-- Add Codex and Claude Code installers, plus a custom destination mode.
-- Strengthen structural validation and add automated CI across supported Python versions.
-- Expand repository guidance, compatibility documentation, and contribution requirements.
-- Correct malformed venue references and documentation typos.
-- Preserve the retained Jane Street Socratic Tutor file and its independent MIT licensing unchanged.
+- Move all 16 existing skill directories under `skills/` without changing any of their `SKILL.md` contents or existing companion-file contents.
+- Add mathematical reasoning, code understanding, research-paper tutoring, and technical interview simulation skills.
+- Add supplemental assessment-rubric, session-state, and example material beside the retained Socratic Tutor without modifying its original skill instructions.
+- Organize behavioral cases under `evals/<skill-name>/cases.yaml` and add the central `evals/test_cases.yaml` manifest.
+- Add version roadmap milestones from 0.2.0 to 1.0.0.
+- Keep the existing evaluator, installer, structural validation, compatibility guidance, and CI, updated for the new directory layout.
+- Rename the CI workflow to `.github/workflows/skill-validation.yml`.

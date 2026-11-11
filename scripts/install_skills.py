@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILLS_ROOT = ROOT / "skills"
 TARGETS = {
     "codex": {
         "project": Path(".agents/skills"),
@@ -22,30 +23,24 @@ TARGETS = {
 
 def available_skills() -> dict[str, Path]:
     return {
-        path.name: path for path in sorted(ROOT.iterdir())
+        path.name: path for path in sorted(SKILLS_ROOT.iterdir())
         if path.is_dir() and (path / "SKILL.md").is_file()
     }
 
 
-def install(
-    names: list[str],
-    destination: Path,
-    *,
-    dry_run: bool = False,
-    force: bool = False,
-) -> list[Path]:
+def install(names: list[str], destination: Path, *, dry_run: bool = False, force: bool = False) -> list[Path]:
     skills = available_skills()
     unknown = sorted(set(names) - set(skills))
     if unknown:
         raise ValueError(f"unknown skill(s): {', '.join(unknown)}")
+    if len(names) != len(set(names)):
+        raise ValueError("duplicate skill names were selected")
     destination = destination.expanduser()
     targets = [destination / name for name in names]
-    conflicts = [target for target in targets if target.exists()]
+    conflicts = [target for target in targets if target.exists() or target.is_symlink()]
     if conflicts and not force:
         formatted = ", ".join(str(path) for path in conflicts)
-        raise FileExistsError(
-            f"target skill already exists: {formatted}. Use --force to replace selected skill directories."
-        )
+        raise FileExistsError(f"target skill already exists: {formatted}. Use --force to replace selected skill directories.")
 
     for name, target in zip(names, targets):
         source = skills[name]
@@ -53,7 +48,9 @@ def install(
             print(f"Would install {name}: {source} -> {target}")
             continue
         target.parent.mkdir(parents=True, exist_ok=True)
-        if target.exists() and force:
+        if target.is_symlink():
+            target.unlink()
+        elif target.exists() and force:
             shutil.rmtree(target)
         shutil.copytree(source, target)
         print(f"Installed {name}: {target}")
@@ -67,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--destination", help="required with --agent custom")
     parser.add_argument("--skills", help="comma-separated skill names; defaults to all skills")
     parser.add_argument("--dry-run", action="store_true", help="preview without copying files")
-    parser.add_argument("--force", action="store_true", help="replace only the selected destination skill directories")
+    parser.add_argument("--force", action="store_true", help="replace only selected destination skill directories")
     args = parser.parse_args(argv)
 
     try:
@@ -81,10 +78,8 @@ def main(argv: list[str] | None = None) -> int:
             relative = TARGETS[args.agent][args.scope]
             destination = ROOT / relative if args.scope == "project" else relative
 
-        names = (
-            [value.strip() for value in args.skills.split(",") if value.strip()]
-            if args.skills else sorted(available_skills())
-        )
+        names = ([value.strip() for value in args.skills.split(",") if value.strip()]
+                 if args.skills else sorted(available_skills()))
         if not names:
             raise ValueError("no skills selected")
         install(names, destination, dry_run=args.dry_run, force=args.force)

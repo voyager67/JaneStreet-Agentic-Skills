@@ -1,6 +1,6 @@
 # Compatibility and installation
 
-The repository uses the portable Agent Skills directory format: each skill is a folder containing a `SKILL.md` manifest and optional supporting files. The skill content is model- and vendor-neutral; discovery paths and optional UI metadata are host-specific.
+The repository uses the portable Agent Skills directory format. Each package lives under `skills/<skill-name>/` and contains a `SKILL.md` manifest plus optional references, examples, and host metadata. Skill content is model- and vendor-neutral; discovery paths are host-specific.
 
 ## Codex
 
@@ -16,7 +16,7 @@ Install into the current user's Codex skills directory:
 python3 scripts/install_skills.py --agent codex --scope user
 ```
 
-Codex repository skills are discovered under `.agents/skills/`; user skills are discovered under `~/.agents/skills/`. Start a new Codex session after installation.
+Codex repository skills are installed under `.agents/skills/`; user skills are installed under `~/.agents/skills/`. Start a new Codex session after installation.
 
 ## Claude Code
 
@@ -36,23 +36,21 @@ The installer uses `.claude/skills/` for project scope and `~/.claude/skills/` f
 
 ## Other Agent Skills-compatible hosts
 
-Copy the selected skill directory, including its `SKILL.md` and any companion files, into the skill-discovery directory documented by that host:
+Copy the selected skill directory, including its `SKILL.md` and companion files, into the skill-discovery directory documented by that host:
 
 ```bash
 python3 scripts/install_skills.py --agent custom --destination /path/to/your/skills --skills market-making,quant-research-validation
 ```
 
-Use `--dry-run` to preview the operation. The installer refuses to overwrite an existing skill directory unless `--force` is supplied. With `--force`, it replaces only the selected destination skill directories.
+Use `--dry-run` to preview the operation. Existing destination skills are never overwritten unless `--force` is passed. With `--force`, only the selected destination skill directories are replaced.
 
-## ChatGPT desktop and OpenAI surfaces
+## OpenAI surfaces
 
-Each skill includes an optional `agents/openai.yaml` file with a user-facing name, concise description, and suggested prompt. This metadata is intended for OpenAI surfaces that support the optional Agent Skills metadata. It does not add tools, credentials, market data, or exchange access.
-
-The skill directories can also be packaged or uploaded as standalone skill bundles in environments that support Agent Skills. Follow the host's current UI and packaging instructions; do not assume a Codex or Claude filesystem path is a ChatGPT desktop import path.
+Each skill includes optional `agents/openai.yaml` metadata with a display name, short description, and suggested prompt. Hosts that do not support this metadata can ignore it. It does not add tools, credentials, market data, or exchange access.
 
 ## Compatibility limits
 
 - The core `SKILL.md` format is portable; implicit activation quality depends on the host and model.
 - UI metadata is optional and may be ignored by hosts that do not implement it.
-- The installer copies files only. It does not install Python packages, configure APIs, connect to venues, provide data entitlements, or enable live trading.
-- A host may impose additional limits on skill count, description length, tools, or file access. Validate the installed skill with that host before relying on it.
+- The installer copies skill directories only. It does not install packages, configure APIs, connect to venues, provide data entitlements, or enable live trading.
+- A host may impose limits on skill count, description length, tools, or file access. Validate installed skills with the target host before relying on them.

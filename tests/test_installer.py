@@ -10,17 +10,13 @@ INSTALLER = ROOT / "scripts" / "install_skills.py"
 
 class InstallerTests(unittest.TestCase):
     def run_installer(self, *args):
-        return subprocess.run(
-            [sys.executable, str(INSTALLER), *args],
-            cwd=ROOT, capture_output=True, text=True, check=False,
-        )
+        return subprocess.run([sys.executable, str(INSTALLER), *args],
+                              cwd=ROOT, capture_output=True, text=True, check=False)
 
-    def test_custom_install_copies_complete_skill_directory(self):
+    def test_custom_install_copies_complete_nested_skill_package(self):
         with tempfile.TemporaryDirectory() as tmp:
-            result = self.run_installer(
-                "--agent", "custom", "--destination", tmp,
-                "--skills", "market-making",
-            )
+            result = self.run_installer("--agent", "custom", "--destination", tmp,
+                                        "--skills", "market-making")
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             target = Path(tmp) / "market-making"
             self.assertTrue((target / "SKILL.md").is_file())
@@ -31,22 +27,25 @@ class InstallerTests(unittest.TestCase):
             target = Path(tmp) / "market-making"
             target.mkdir()
             (target / "sentinel.txt").write_text("keep", encoding="utf-8")
-            result = self.run_installer(
-                "--agent", "custom", "--destination", tmp,
-                "--skills", "market-making",
-            )
+            result = self.run_installer("--agent", "custom", "--destination", tmp,
+                                        "--skills", "market-making")
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual((target / "sentinel.txt").read_text(encoding="utf-8"), "keep")
 
     def test_dry_run_does_not_create_destination(self):
         with tempfile.TemporaryDirectory() as tmp:
             destination = Path(tmp) / "not-created"
-            result = self.run_installer(
-                "--agent", "custom", "--destination", str(destination),
-                "--skills", "lob-microstructure", "--dry-run",
-            )
+            result = self.run_installer("--agent", "custom", "--destination", str(destination),
+                                        "--skills", "lob-microstructure", "--dry-run")
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertFalse(destination.exists())
+
+    def test_new_learning_skill_is_installable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_installer("--agent", "custom", "--destination", tmp,
+                                        "--skills", "research-paper-tutor")
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue((Path(tmp) / "research-paper-tutor" / "SKILL.md").is_file())
 
 
 if __name__ == "__main__":

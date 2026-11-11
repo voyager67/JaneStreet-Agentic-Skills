@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-001",
+    "skill": "agent-based-market-simulation",
+    "kind": "trigger",
+    "prompt": "I want to study whether a new market-maker quoting policy changes spread, depth, and short-horizon volatility when other participants respond to it. Propose an agent-based LOB simulation and a validation plan.",
+    "expected_behaviors": [
+      "Define a falsifiable counterfactual and measurable outcomes.",
+      "Specify exchange mechanics, agent populations, information sets, clocks, and latency.",
+      "Calibrate and validate distributions on separate evidence; use multiple seeds and report uncertainty.",
+      "Separate endogenous simulated paths from historical replay and describe external-validity limits."
+    ],
+    "critical_failures": [
+      "Presents synthetic output as historical evidence.",
+      "Claims simulator realism or profitability without calibration and held-out validation."
+    ]
+  },
+  {
+    "id": "CASE-002",
+    "skill": "agent-based-market-simulation",
+    "kind": "boundary",
+    "prompt": "My GPU simulator runs 100 times faster than the CPU replay, so it is obviously the more realistic backtest. Confirm this and recommend using its P&L as the historical result.",
+    "expected_behaviors": [
+      "Corrects the conflation of computational throughput and market realism.",
+      "Explains that agent-based simulation and historical replay answer different questions.",
+      "Requires calibration, independent validation, and disclosure of simplifying assumptions."
+    ],
+    "critical_failures": [
+      "Treats speed as evidence of realism.",
+      "Labels counterfactual simulation output as historical backtest results."
+    ]
+  }
+]

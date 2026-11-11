@@ -1,0 +1,6 @@
+interface:
+  display_name: "Code Understanding"
+  short_description: "Trace code behavior and debug from evidence"
+  default_prompt: "Use the code-understanding skill to trace this behavior from the actual code. Identify the relevant files and call path, explain the data flow, find the root cause if there is a bug, and distinguish verified facts from assumptions. Do not edit files unless I ask."
+policy:
+  allow_implicit_invocation: true

@@ -10,10 +10,38 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILLS_ROOT = ROOT / "skills"
 NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-URL = re.compile(r"https?://[^\s)<>]+", re.IGNORECASE)
+URL = re.compile(r"https?://[^\\s)<>]+", re.IGNORECASE)
 UPSTREAM_SHA256 = "9190b68440ad99be4d865c63b87939f23a362efac0776c5a67c93d1498bb5e37"
-EXPECTED_SKILL_COUNT = 16
+EXPECTED_SKILL_COUNT = 20
+
+# Git blob object IDs from the 16 existing skill files in the pre-restructure PR.
+# Recomputing these IDs ensures the directory move does not silently edit old skills.
+PRESERVED_SKILL_BLOBS = {
+    "agent-based-market-simulation": "7bbc34a461b804890227f34271fe4258a7cc0de2",
+    "etf-arbitrage": "c3997858a5348585381ddda0b1f79db9381efd5c",
+    "exchange-gateway-engineering": "9bec552a16b063afe8d31c9f7f8c039fc08755de",
+    "execution-analysis": "b678bcf562b10303f25ea98872a61795d64f70a9",
+    "hft-market-replay": "65f5b6faf2998537dd4e7b7f6024a4afaebb59cb",
+    "lob-microstructure": "ce74b88b7e596acff3c96903d61fea0866e6fcf9",
+    "low-latency-performance": "47e98a0be22bedb3f3003a33b933fd8aac379cf4",
+    "market-making": "9663407cc53be668b4fa5d65ef3bc0b33df0be63",
+    "order-book-reconstruction": "f91ac3b6b42da7ca49c973ca753ba20a3d066e58",
+    "pre-trade-risk-controls": "46898f92acb1a28708d8841aae0e5fcd392a99e2",
+    "production-trading-operations": "5add336374371018c908e53d2d7fc7dfd3b5267c",
+    "quant-research-validation": "b7ea4bbfe228bd47c8fe1a6c7b19c246013a7313",
+    "queue-position-modeling": "e64aeedbbfe6456814dd606b294d25c293eae91e",
+    "socratic-tutor": "93bb7befeb73c41b4354175f9ef765547d4f3506",
+    "tick-data-engineering": "aa81ac5c70d92ebfb43a9f35c5015dfeef74e9b2",
+    "volatility-market-making": "021d41d2332633728f8b6616788a71f4baa2a138",
+}
+
+
+def git_blob_sha(path: Path) -> str:
+    data = path.read_bytes()
+    header = f"blob {len(data)}\\0".encode("ascii")
+    return hashlib.sha1(header + data).hexdigest()
 
 
 def scalar(value: str) -> str:
@@ -30,9 +58,9 @@ def scalar(value: str) -> str:
 
 def parse_frontmatter(path: Path) -> tuple[dict[str, str], str]:
     content = path.read_text(encoding="utf-8")
-    if not content.startswith("---\n"):
+    if not content.startswith("---\\n"):
         raise ValueError("missing YAML frontmatter")
-    end = content.find("\n---\n", 4)
+    end = content.find("\\n---\\n", 4)
     if end < 0:
         raise ValueError("missing closing frontmatter delimiter")
     fields: dict[str, str] = {}
@@ -53,7 +81,7 @@ def parse_ui_metadata(path: Path) -> dict[str, str]:
     text = path.read_text(encoding="utf-8")
     fields = {}
     for key in ("display_name", "short_description", "default_prompt"):
-        match = re.search(rf"^  {key}:\s*(.+?)\s*$", text, re.MULTILINE)
+        match = re.search(rf"^  {key}:\\s*(.+?)\\s*$", text, re.MULTILINE)
         if not match:
             raise ValueError(f"missing interface.{key}")
         fields[key] = scalar(match.group(1))
@@ -61,16 +89,18 @@ def parse_ui_metadata(path: Path) -> dict[str, str]:
             raise ValueError(f"interface.{key} is empty")
     if len(fields["short_description"]) > 64:
         raise ValueError("interface.short_description exceeds 64 characters")
-    if not re.search(r"^policy:\s*$", text, re.MULTILINE):
+    if not re.search(r"^policy:\\s*$", text, re.MULTILINE):
         raise ValueError("missing policy section")
-    if not re.search(r"^  allow_implicit_invocation:\s*(true|false)\s*$", text, re.MULTILINE):
+    if not re.search(r"^  allow_implicit_invocation:\\s*(true|false)\\s*$", text, re.MULTILINE):
         raise ValueError("policy.allow_implicit_invocation must be boolean")
     return fields
 
 
 def skill_directories() -> list[Path]:
+    if not SKILLS_ROOT.is_dir():
+        return []
     return sorted(
-        path for path in ROOT.iterdir()
+        path for path in SKILLS_ROOT.iterdir()
         if path.is_dir() and (path / "SKILL.md").is_file()
     )
 
@@ -128,28 +158,29 @@ def main() -> int:
     if len(dirs) != EXPECTED_SKILL_COUNT:
         errors.append(f"expected {EXPECTED_SKILL_COUNT} skills, found {len(dirs)}")
 
-    retained = ROOT / "socratic-tutor" / "SKILL.md"
+    for name, expected_sha in PRESERVED_SKILL_BLOBS.items():
+        path = SKILLS_ROOT / name / "SKILL.md"
+        if not path.is_file():
+            errors.append(f"preserved skill missing: {name}")
+        elif git_blob_sha(path) != expected_sha:
+            errors.append(f"existing skill content changed: {name}")
+
+    retained = SKILLS_ROOT / "socratic-tutor" / "SKILL.md"
     if not retained.is_file():
         errors.append("Jane Street socratic-tutor is missing")
     elif hashlib.sha256(retained.read_bytes()).hexdigest() != UPSTREAM_SHA256:
         errors.append("Jane Street socratic-tutor fingerprint mismatch")
 
-    readme = ROOT / "README.md"
-    skills_index = ROOT / "SKILLS.md"
-    if readme.is_file() and skills_index.is_file():
-        readme_text = readme.read_text(encoding="utf-8")
-        index_text = skills_index.read_text(encoding="utf-8")
+    for doc_name in ("README.md", "SKILLS.md", "ROADMAP.md", "CONTRIBUTING.md", "COMPATIBILITY.md", "EVALUATION.md"):
+        path = ROOT / doc_name
+        if not path.is_file():
+            errors.append(f"{doc_name} is missing")
+            continue
+        doc = path.read_text(encoding="utf-8")
         for name in sorted(names):
-            if name not in readme_text:
-                errors.append(f"README.md does not reference skill {name!r}")
-            if name not in index_text:
-                errors.append(f"SKILLS.md does not reference skill {name!r}")
-    else:
-        errors.append("README.md or SKILLS.md is missing")
-
-    for path in (ROOT / "README.md", ROOT / "CONTRIBUTING.md", ROOT / "COMPATIBILITY.md"):
-        if path.is_file():
-            check_urls(path, errors)
+            if name not in doc and doc_name in {"README.md", "SKILLS.md"}:
+                errors.append(f"{doc_name} does not reference skill {name!r}")
+        check_urls(path, errors)
 
     if errors:
         print("Validation failed:")
@@ -157,7 +188,7 @@ def main() -> int:
             print(f"- {error}")
         return 1
 
-    print(f"Validated {len(dirs)} skills, OpenAI metadata, catalogue coverage, URLs, and Jane Street source fingerprint.")
+    print(f"Validated {len(dirs)} skills, OpenAI metadata, documentation, URLs, and preserved skill hashes.")
     for folder in dirs:
         print(f"  OK  {folder.name}")
     return 0

@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-027",
+    "skill": "socratic-tutor",
+    "kind": "trigger",
+    "prompt": "Teach me eigenvalues from my current level. Quiz me one question at a time and help me master the topic rather than giving me a lecture.",
+    "expected_behaviors": [
+      "Confirms ongoing tutoring intent and starts a diagnostic before teaching.",
+      "Breaks the topic into concrete subskills and tracks demonstrated levels.",
+      "Asks one question at a time and waits for the answer.",
+      "Awards mastery only after independent evidence and schedules review."
+    ],
+    "critical_failures": [
+      "Immediately delivers a long lecture or gives away diagnostic answers.",
+      "Asks multiple diagnostic questions in one turn instead of one at a time."
+    ]
+  },
+  {
+    "id": "CASE-028",
+    "skill": "socratic-tutor",
+    "kind": "boundary",
+    "prompt": "Explain eigenvalues in one short paragraph. I just need the definition and a quick example, not a tutoring session.",
+    "expected_behaviors": [
+      "Recognizes a one-off explanation request rather than ongoing tutoring intent.",
+      "Answers the question directly without launching a diagnostic or skill map.",
+      "Does not force one-question-at-a-time tutoring behavior when it was not requested."
+    ],
+    "critical_failures": [
+      "Starts the diagnostic or tutoring loop despite the explicit one-off request.",
+      "Refuses to give a direct explanation because the user did not ask for tutoring."
+    ]
+  }
+]

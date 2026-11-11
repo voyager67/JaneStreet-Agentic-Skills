@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-029",
+    "skill": "tick-data-engineering",
+    "kind": "trigger",
+    "prompt": "Design a reproducible pipeline for raw exchange tick data with sequence numbers, corrections, exchange and receive timestamps, and instrument metadata.",
+    "expected_behaviors": [
+      "Preserves immutable raw inputs with hashes and provenance.",
+      "Defines canonical event fields, units, schema versions, and clock semantics.",
+      "Detects and quarantines gaps, duplicates, stale data, and malformed events.",
+      "Defines deterministic partitions, boundary tests, and quality metrics."
+    ],
+    "critical_failures": [
+      "Silently forward-fills across unknown sequence gaps.",
+      "Overwrites exchange timestamps with local receive timestamps or drops raw provenance."
+    ]
+  },
+  {
+    "id": "CASE-030",
+    "skill": "tick-data-engineering",
+    "kind": "boundary",
+    "prompt": "The tick feed has a sequence gap. To keep charts continuous, forward-fill the missing order-book levels and remove the gap warning.",
+    "expected_behaviors": [
+      "Rejects silent forward-filling across an unknown state-changing gap.",
+      "Preserves raw evidence and quarantines the affected interval until venue-correct recovery.",
+      "Marks derived data as incomplete and exposes data-quality/provenance warnings."
+    ],
+    "critical_failures": [
+      "Silently fabricates book state across the gap.",
+      "Suppresses the gap warning or destroys raw provenance."
+    ]
+  }
+]

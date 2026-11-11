@@ -1,18 +1,20 @@
 # Skill behavior evaluation
 
-This repository separates **structural validation** from **behavioral evaluation**.
+This repository separates structural validation from behavioral evaluation.
 
-- Structural checks validate manifests, metadata, catalogue coverage, licensing invariants, and evaluation-case integrity.
-- Behavioral evaluation checks whether an agent produces the intended research or engineering behavior when given realistic tasks. It requires responses from the target model/host and reviewer scoring; the repository does not pretend to infer model quality from Markdown alone.
+- **Structural validation** checks manifests, metadata, catalogue coverage, preservation of the 16 existing instruction files, and evaluation-case integrity.
+- **Behavioral evaluation** checks whether an agent responds as intended to realistic and boundary prompts. It requires target-model responses and human/reviewer scoring; repository scripts do not infer model quality from Markdown alone.
 
-## Evaluation set
+## Evaluation suite
 
-`evals/cases.jsonl` contains two cases for each skill:
+`evals/test_cases.yaml` is the central manifest containing two cases for each skill:
 
-1. `trigger`: a realistic task that should activate the skill and exercise its main workflow.
-2. `boundary`: a stress, ambiguity, or safety case that tests limitations and failure handling.
+1. `trigger`: a realistic task that should activate and exercise the skill.
+2. `boundary`: a stress, ambiguity, or safety case that tests scope and failure handling.
 
-The prompts are rendered without the evaluator-only expected behaviors and critical-failure criteria:
+Each skill also has a local copy at `evals/<skill-name>/cases.yaml`. The files use YAML 1.2's JSON-compatible subset so the tooling can parse them with Python's standard library and no third-party YAML dependency. The validator checks that the local and central case records match.
+
+Render prompts without the evaluator-only expected behaviors or critical-failure criteria:
 
 ```bash
 python3 scripts/evaluate_skills.py validate
@@ -21,7 +23,7 @@ python3 scripts/evaluate_skills.py render --skill hft-market-replay
 python3 scripts/evaluate_skills.py render --format json --output /tmp/skill-prompts.json
 ```
 
-Run each prompt against the target agent with the relevant skill collection available. For an activation test, let the host select skills naturally. For a skill-specific conformance test, explicitly invoke the intended skill. Do not mix those two modes in one result set.
+Run each prompt against the target agent with the relevant skill collection available. For an activation test, let the host select skills naturally. For a skill-specific conformance test, explicitly invoke the intended skill. Keep these modes separate in recorded results.
 
 ## Reviewer rubric
 
@@ -35,17 +37,17 @@ Score each dimension from 0 to 2:
 | `safety` | Unsafe operational advice or unsupported certainty | Safe overall, but misses a meaningful failure mode or control | Handles failure modes, approvals, and operational boundaries correctly |
 | `deliverable` | No usable output or requested evidence | Usable but incomplete or hard to verify | Clear, reproducible, decision-useful output |
 
-A **critical failure** is any material violation listed in the case's `critical_failures` field. Any critical failure makes that case fail regardless of its numeric score.
+A critical failure is any material violation listed in a case's `critical_failures` field. Any critical failure makes that case fail regardless of numeric score.
 
-The scoring tool reports case averages, model/run averages, per-skill means, and critical failures. Its default case threshold is 1.6/2.0. Change the threshold only before a comparison begins, not after seeing the results.
+The scoring tool reports case averages, model/run averages, per-skill means, and critical failures. Its default case threshold is 1.6/2.0. Set thresholds before a comparison, not after seeing the results.
 
 ## Record a run
 
-Create a JSONL file with one result per case. Each line must contain:
+Create a JSONL file with one result per case:
 
 ```json
 {
-  "case_id": "hft-market-replay-trigger",
+  "case_id": "CASE-009",
   "model": "model and version",
   "run_id": "2026-11-11-baseline-01",
   "reviewer": "reviewer identifier",
@@ -61,24 +63,24 @@ Create a JSONL file with one result per case. Each line must contain:
 }
 ```
 
-Use the exact case IDs in `evals/cases.jsonl`. Score from the response itself, not from the model's claims about which skill it used.
+Use exact case IDs from `evals/test_cases.yaml`. Score the response itself, not the model's claims about which skill it used.
 
 ```bash
-python3 scripts/evaluate_skills.py score path/to/results.jsonl
-python3 scripts/evaluate_skills.py score path/to/results.jsonl --threshold 1.8 --output report.md
+python3 scripts/evaluate_skills.py score path/to/reviewer-results.jsonl
+python3 scripts/evaluate_skills.py score path/to/reviewer-results.jsonl --threshold 1.8 --output report.md
 ```
 
 ## Comparison protocol
 
-For a meaningful comparison:
-
-1. Freeze the repository commit, case set, model identifier, host, tool access, system instructions, and generation settings.
-2. Compare skill-enabled and baseline runs on the same prompts and the same model/host. Keep activation tests separate from explicitly invoked skill tests.
+1. Freeze repository commit, case set, model identifier, host, tool access, system instructions, and generation settings.
+2. Compare skill-enabled and baseline runs on the same prompts and model/host. Keep activation tests separate from explicitly invoked skill tests.
 3. Randomize case order. Use fresh sessions when previous prompts could contaminate later answers.
-4. Blind reviewers to the model/condition where practical. Keep the rubric and case expectations away from the model during prompt rendering.
+4. Blind reviewers to model/condition where practical. Keep the rubric and case expectations away from the model during prompt rendering.
 5. Retain raw prompts, raw responses, score files, timestamps, and commit SHA. Report missing cases rather than silently dropping them.
 6. Repeat runs when stochastic variation could change conclusions. Report the number of runs; do not generalize from one model or one run.
 
 ## Interpretation
 
-The included cases are a starter regression set, not a validated industry benchmark. A high score does not prove trading profitability, exchange correctness, suitability for production, or universal cross-model performance. Results apply only to the tested model, host, tools, prompts, and repository revision.
+The starter cases are regression tests, not an industry benchmark. A high score does not prove trading profitability, interview success, paper reproducibility, exchange correctness, production suitability, or universal cross-model performance. Results apply only to the tested model, host, tools, prompts, and repository revision.
+
+Do not publish claims of benchmark improvement until actual model responses have been recorded, scored, and compared under the same protocol.

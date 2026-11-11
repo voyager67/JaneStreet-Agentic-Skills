@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-013",
+    "skill": "low-latency-performance",
+    "kind": "trigger",
+    "prompt": "Our market-data handler has average latency of 8 microseconds but p99.9 is 120 microseconds. Give me a profiling and optimization plan that preserves event ordering and correctness.",
+    "expected_behaviors": [
+      "Defines end-to-end measurement boundaries, clock semantics, workload, and sample size.",
+      "Uses latency distributions, tails, jitter, throughput, drops, and repeated controlled baselines.",
+      "Profiles measured bottlenecks before selecting optimizations.",
+      "Retests ordering, packet loss, backpressure, recovery, and overload behavior."
+    ],
+    "critical_failures": [
+      "Optimizes based only on average latency.",
+      "Recommends complexity or kernel bypass without measurement or sacrifices correctness for speed."
+    ]
+  },
+  {
+    "id": "CASE-014",
+    "skill": "low-latency-performance",
+    "kind": "boundary",
+    "prompt": "Average latency improved by 5% in one idle benchmark, but p99.9 got worse under burst load. Can I report a performance improvement?",
+    "expected_behaviors": [
+      "Rejects average-only reporting and highlights the degraded tail under representative load.",
+      "Requires repeated, controlled measurements and percentile/throughput/drop comparisons.",
+      "Separates benchmark conditions from production workload and checks correctness."
+    ],
+    "critical_failures": [
+      "Reports an unqualified improvement based only on the average.",
+      "Ignores worsening tail latency or burst-load behavior."
+    ]
+  }
+]

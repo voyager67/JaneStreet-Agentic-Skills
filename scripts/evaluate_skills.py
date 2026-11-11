@@ -10,12 +10,39 @@ from pathlib import Path
 from statistics import mean
 
 ROOT = Path(__file__).resolve().parents[1]
-CASES_PATH = ROOT / "evals" / "cases.jsonl"
+SKILLS_ROOT = ROOT / "skills"
+EVALS_ROOT = ROOT / "evals"
+CASES_PATH = EVALS_ROOT / "test_cases.yaml"
 DIMENSIONS = ("task_fit", "domain_accuracy", "assumptions", "safety", "deliverable")
 DEFAULT_THRESHOLD = 1.6
 
 
+def load_cases(path: Path) -> list[dict]:
+    """Load JSON-compatible YAML (valid YAML 1.2) using only the stdlib."""
+    raw = path.read_text(encoding="utf-8")
+    try:
+        value = json.loads(raw)
+        if isinstance(value, list) and all(isinstance(row, dict) for row in value):
+            return value
+        raise ValueError(f"{path}: expected a YAML/JSON list of objects")
+    except json.JSONDecodeError:
+        # Backward-compatible JSONL reader for external result fixtures and older case files.
+        rows = []
+        for line_number, line in enumerate(raw.splitlines(), 1):
+            if not line.strip():
+                continue
+            try:
+                value = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"{path}:{line_number}: invalid JSON-compatible YAML: {exc}") from exc
+            if not isinstance(value, dict):
+                raise ValueError(f"{path}:{line_number}: each JSONL record must be an object")
+            rows.append(value)
+        return rows
+
+
 def load_jsonl(path: Path) -> list[dict]:
+    """Read reviewer result records stored as JSON Lines."""
     records = []
     for line_number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
         if not raw.strip():
@@ -31,8 +58,10 @@ def load_jsonl(path: Path) -> list[dict]:
 
 
 def skill_names() -> set[str]:
+    if not SKILLS_ROOT.is_dir():
+        return set()
     return {
-        path.name for path in ROOT.iterdir()
+        path.name for path in SKILLS_ROOT.iterdir()
         if path.is_dir() and (path / "SKILL.md").is_file()
     }
 
@@ -87,22 +116,39 @@ def validate_cases(cases: list[dict]) -> list[str]:
     return errors
 
 
+def validate_local_case_files(cases: list[dict]) -> list[str]:
+    errors = []
+    for skill in sorted(skill_names()):
+        path = EVALS_ROOT / skill / "cases.yaml"
+        if not path.is_file():
+            errors.append(f"{path.relative_to(ROOT)} is missing")
+            continue
+        try:
+            local = load_cases(path)
+        except (OSError, ValueError) as exc:
+            errors.append(str(exc))
+            continue
+        expected = [case for case in cases if case.get("skill") == skill]
+        if local != expected:
+            errors.append(f"{path.relative_to(ROOT)} does not match central evaluation manifest")
+    return errors
+
+
 def render_cases(cases: list[dict], selected_skill: str | None, output_format: str) -> str:
     selected = [case for case in cases if selected_skill is None or case["skill"] == selected_skill]
     if selected_skill is not None and not selected:
         raise ValueError(f"no cases found for skill {selected_skill!r}")
     if output_format == "json":
-        # Evaluator-only expectations and failure criteria are intentionally omitted.
         return json.dumps(
             [{"id": case["id"], "prompt": case["prompt"]} for case in selected],
             indent=2,
             ensure_ascii=False,
-        ) + "\n"
+        ) + "\\n"
 
     blocks = ["# Skill evaluation prompts", ""]
     for case in selected:
         blocks.extend([f"## {case['id']}", "", case["prompt"], ""])
-    return "\n".join(blocks).rstrip() + "\n"
+    return "\\n".join(blocks).rstrip() + "\\n"
 
 
 def validate_results(results: list[dict], cases: list[dict]) -> list[str]:
@@ -149,14 +195,8 @@ def summarize_results(results: list[dict], cases: list[dict], threshold: float) 
 
     summary = []
     for (model, run_id), rows in sorted(groups.items()):
-        case_scores = [
-            mean(row["scores"][dimension] for dimension in DIMENSIONS)
-            for row in rows
-        ]
-        passed = [
-            score >= threshold and not row["critical_failures"]
-            for score, row in zip(case_scores, rows)
-        ]
+        case_scores = [mean(row["scores"][dimension] for dimension in DIMENSIONS) for row in rows]
+        passed = [score >= threshold and not row["critical_failures"] for score, row in zip(case_scores, rows)]
         per_skill: dict[str, list[float]] = defaultdict(list)
         for row, score in zip(rows, case_scores):
             per_skill[case_by_id[row["case_id"]]["skill"]].append(score)
@@ -164,14 +204,12 @@ def summarize_results(results: list[dict], cases: list[dict], threshold: float) 
             "model": model,
             "run_id": run_id,
             "cases_scored": len(rows),
+            "case_coverage": round(len({row["case_id"] for row in rows}) / len(cases), 3),
             "mean_score": round(mean(case_scores), 3),
             "case_passes": sum(passed),
             "case_pass_rate": round(sum(passed) / len(passed), 3),
             "critical_failure_count": sum(len(row["critical_failures"]) for row in rows),
-            "skills": {
-                skill: round(mean(scores), 3)
-                for skill, scores in sorted(per_skill.items())
-            },
+            "skills": {skill: round(mean(scores), 3) for skill, scores in sorted(per_skill.items())},
         })
     return {"threshold": threshold, "runs": summary}
 
@@ -182,26 +220,29 @@ def format_report(summary: dict) -> str:
         "",
         f"Case pass threshold: **{summary['threshold']:.2f}/2.00**",
         "",
-        "| Model | Run | Cases | Mean / 2 | Case pass rate | Critical failures |",
-        "|---|---|---:|---:|---:|---:|",
+        "| Model | Run | Cases | Coverage | Mean / 2 | Case pass rate | Critical failures |",
+        "|---|---|---:|---:|---:|---:|---:|",
     ]
     for run in summary["runs"]:
         lines.append(
             f"| {run['model']} | {run['run_id']} | {run['cases_scored']} | "
-            f"{run['mean_score']:.3f} | {run['case_passes']}/{run['cases_scored']} "
-            f"({run['case_pass_rate']:.1%}) | {run['critical_failure_count']} |"
+            f"{run['case_coverage']:.1%} | {run['mean_score']:.3f} | "
+            f"{run['case_passes']}/{run['cases_scored']} ({run['case_pass_rate']:.1%}) | "
+            f"{run['critical_failure_count']} |"
         )
         lines.extend(["", f"### Per-skill means — {run['model']} / {run['run_id']}", "",
                       "| Skill | Mean / 2 |", "|---|---:|"])
         for skill, score in run["skills"].items():
             lines.append(f"| {skill} | {score:.3f} |")
-    return "\n".join(lines) + "\n"
+    return "\\n".join(lines) + "\\n"
 
 
 def write_output(content: str, output: str | None) -> None:
     if output:
-        Path(output).expanduser().write_text(content, encoding="utf-8")
-        print(f"Wrote {output}")
+        target = Path(output).expanduser()
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+        print(f"Wrote {target}")
     else:
         sys.stdout.write(content)
 
@@ -209,7 +250,7 @@ def write_output(content: str, output: str | None) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("validate", help="validate case coverage and schema")
+    subparsers.add_parser("validate", help="validate central and per-skill evaluation cases")
     render_parser = subparsers.add_parser("render", help="render prompts without evaluator-only criteria")
     render_parser.add_argument("--skill", help="render one skill's cases")
     render_parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
@@ -221,21 +262,20 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        cases = load_jsonl(CASES_PATH)
-        errors = validate_cases(cases)
+        cases = load_cases(CASES_PATH)
+        errors = validate_cases(cases) + validate_local_case_files(cases)
         if errors:
             for error in errors:
                 print(f"ERROR: {error}", file=sys.stderr)
             return 1
 
         if args.command == "validate":
-            print(f"Validated {len(cases)} cases across {len(skill_names())} skills.")
+            print(f"Validated {len(cases)} cases across {len(skill_names())} skills, including per-skill case files.")
             return 0
         if args.command == "render":
             if args.skill and args.skill not in skill_names():
                 raise ValueError(f"unknown skill {args.skill!r}")
-            rendered = render_cases(cases, args.skill, args.format)
-            write_output(rendered, args.output)
+            write_output(render_cases(cases, args.skill, args.format), args.output)
             return 0
         if args.command == "score":
             if not 0.0 <= args.threshold <= 2.0:
@@ -246,8 +286,7 @@ def main(argv: list[str] | None = None) -> int:
                 for error in errors:
                     print(f"ERROR: {error}", file=sys.stderr)
                 return 1
-            summary = summarize_results(results, cases, args.threshold)
-            write_output(format_report(summary), args.output)
+            write_output(format_report(summarize_results(results, cases, args.threshold)), args.output)
             return 0
     except (OSError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
