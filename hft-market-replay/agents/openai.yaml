@@ -1,0 +1,6 @@
+interface:
+  display_name: "HFT Market Replay"
+  short_description: "Audit tick-level replay and fill realism"
+  default_prompt: "Use the hft-market-replay skill to design or audit tick-by-tick replay, event ordering, feed/order latency, queue-aware fills, costs, and look-ahead controls. State historical-path assumptions."
+policy:
+  allow_implicit_invocation: true

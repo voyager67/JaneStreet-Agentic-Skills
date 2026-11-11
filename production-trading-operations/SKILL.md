@@ -28,7 +28,7 @@ Treat production readiness as a system property spanning data, strategy, executi
 
 ## Deliverable
 
-Return a readiness matrix, service indicators/thresholds, dependency map, release gates, rollback plan, reconcilation design, incident runbooks, drill evidence, and named human owners.
+Return a readiness matrix, service indicators/thresholds, dependency map, release gates, rollback plan, reconciliation design, incident runbooks, drill evidence, and named human owners.
 
 ## Further reading
 

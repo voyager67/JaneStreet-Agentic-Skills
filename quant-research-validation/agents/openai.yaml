@@ -1,0 +1,6 @@
+interface:
+  display_name: "Quant Research Validation"
+  short_description: "Red-team signals and backtests"
+  default_prompt: "Use the quant-research-validation skill to audit point-in-time data, leakage, temporal splits, multiple testing, realistic costs, robustness, and reproducibility before paper/shadow evaluation."
+policy:
+  allow_implicit_invocation: true

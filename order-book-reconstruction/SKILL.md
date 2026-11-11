@@ -9,12 +9,12 @@ Act as an exchange-feed and market-data engineer. Reconstruct the exchange-visib
 ## Workflow
 
 1. **Read the authoritative protocol.** Identify message types, field widths, byte order, message framing, sequence-number scope, order-ID scope, price/quantity scale, symbol mapping, session reset rules, and correction/bust semantics. Record the spec version and effective date.
-2. **Choose the state model.** For MBO, maintain order-ID state and derive price levels; for MBP/L2, maintain aggregate levels and accept that individual queue rank unavailable. Represent bid/ask sides with explicit price ordering and integer ticks.
+2. **Choose the state model.** For MBO, maintain order-ID state and derive price levels; for MBP/L2, maintain aggregate levels and accept that individual queue rank is unavailable. Represent bid/ask sides with explicit price ordering and integer ticks.
 3. **Specify transitions before coding.** Map each message to a state transition: add, partial execution, full execution, cancel, replace, delete, trade-only event, cross/auction event, or session control. Define behavior for unknown IDs and duplicate messages.
 4. **Handle sequence and recovery.** Detect gaps, duplicates, out-of-order delivery, retransmissions, and channel resets. Stop publishing a trusted book after a gap until protocol-correct recovery (snapshot/replay or channel recovery) completes. Do not silently skip unknown state-changing messages.
 5. **Make updates atomic.** Apply each event as one state transition; preserve event order. Treat replace semantics according to protocol (some replacements lose priority; some do not). Do not assume cancel-plus-add unless the spec says so.
 6. **Validate invariants.** Check nonnegative quantities, no zero-sized resting orders, one active order ID at a time where required, aggregate depth matching order-level sums, tick alignment, monotonic sequence within the applicable channel, and no crossed book outside documented market states.
-7. **Cross-check against reference outputs.** Use Known protocol examples, independent decoders, venue-provided snapshots, and carefully selected event sequences. Build tests for every message type and transitions around boundary values.
+7. **Cross-check against reference outputs.** Use known protocol examples, independent decoders, venue-provided snapshots, and carefully selected event sequences. Build tests for every message type and transitions around boundary values.
 8. **Expose observability.** Emit sequence-gap counters, parse errors, unknown-ID events, recovery state, message throughput, book age, and last trusted sequence.
 
 ## Data structures and correctness notes
@@ -39,4 +39,6 @@ Provide a protocol map, event/state transition table, data model, recovery desig
 ## Further reading
 
 - Nasdaq TotalView-ITCH 5.0: https://nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHspecification.pdf
-- Nasdaq oUCH overview and order-entry specs: https://nasdaqtrader.com/Trader.aspx?id=OUCH.- NYSE Pillar platform/specifications: https://www.nyse.com/trade/pillar
+- Nasdaq OUCH order-entry overview: https://nasdaqtrader.com/Trader.aspx?id=OUCH
+- Nasdaq OUCH 5.0 specification: https://www.nasdaqtrader.com/content/technicalsupport/specifications/TradingProducts/OUCH5.0.pdf
+- NYSE Pillar platform and specifications: https://www.nyse.com/trade/pillar

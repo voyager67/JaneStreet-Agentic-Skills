@@ -8,28 +8,39 @@ Contributions should make an agent materially better at a concrete quantitative-
 - A short, accurate activation description with specific trigger phrases or task conditions.
 - Domain-specific steps, equations with stated assumptions, edge cases, and a usable deliverable checklist.
 - References to primary papers, official venue documentation, maintained technical documentation, or well-established open-source projects.
-- Tests, reproducible examples, and explicit statements about what the data or model cannot establish.
+- Two evaluation cases: one realistic trigger and one boundary or stress scenario.
+- Reproducible examples and explicit statements about what the data or model cannot establish.
 
 ## Requirements
 
 1. One skill per directory, with a `SKILL.md` directly inside it.
 2. Use standard YAML frontmatter with required `name` and `description` fields. The `name` must match the directory name.
 3. Keep each skill focused. It should tell an agent when to activate, what information to gather, how to work, what to validate, and what to deliver.
-4. Do not claim access to proprietary Jane Street systems, internal strategies, exchange feeds, or non-public trading methods.
-5. Do not copy skill text or code from other repositories unless the license permits it and all required notices are retained. Prefer independently written procedures and cite conceptual sources.
-6. Do not include API keys, credentials, account identifiers, customer data, exchange entitlements, or private market data.
-7. Keep external actions safe. A skill must not instruct an agent to place live orders, relax production limits, or disable controls without explicit authorization and the proper approvals.
-8. Run `python3 scripts/validate_skills.py` and `python3 -m unittest discover -s tests -v` before submitting a pull request.
+4. Provide `agents/openai.yaml` UI metadata for new skills and keep its description and suggested prompt consistent with `SKILL.md`.
+5. Add at least one `trigger` and one `boundary` case to `evals/cases.jsonl` for every skill.
+6. Do not claim access to proprietary Jane Street systems, internal strategies, exchange feeds, or non-public trading methods.
+7. Do not copy skill text or code from other repositories unless the license permits it and all required notices are retained. Prefer independently written procedures and cite conceptual sources.
+8. Do not include API keys, credentials, account identifiers, customer data, exchange entitlements, or private market data.
+9. Keep external actions safe. A skill must not instruct an agent to place live orders, relax production limits, or disable controls without explicit authorization and the proper approvals.
+10. Run all checks before submitting a pull request:
+
+```bash
+python3 scripts/validate_skills.py
+python3 -m unittest discover -s tests -v
+python3 scripts/evaluate_skills.py validate
+```
 
 ## Review checklist
 
 - Does the description activate on the correct tasks and avoid unrelated tasks?
 - Are assumptions, units, timestamps, and sign conventions explicit?
-- Are the key financial and venue mechanics correct for the stated scope?
+- Are key financial and venue mechanics correct for the stated scope?
 - Does the skill distinguish historical replay from counterfactual simulation?
 - Are fill, queue, fees, latency, market impact, and risk assumptions visible where relevant?
 - Are examples reproducible and free of invented benchmark results?
 - Are references credible, current where needed, and correctly attributed?
+- Do the new evaluation cases cover both normal usage and an important boundary/failure mode?
+- Has the retained Jane Street skill remained unchanged?
 
 ## License and copyright
 

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Order-Book Reconstruction"
+  short_description: "Rebuild books from exchange messages"
+  default_prompt: "Use the order-book-reconstruction skill to map venue-specific message semantics, reconstruct MBO/L2 state, recover from sequence gaps, and test book invariants."
+policy:
+  allow_implicit_invocation: true
