@@ -57,14 +57,15 @@ PRESERVED_SKILL_BLOBS = {
 
 def git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
-    return hashlib.sha1(f"blob {len(data)}\\0".encode("ascii") + data).hexdigest()
+    header = f"blob {len(data)}\0".encode("ascii")
+    return hashlib.sha1(header + data).hexdigest()
 
 
 def parse_frontmatter(path: Path) -> tuple[dict[str, str], str]:
     content = path.read_text(encoding="utf-8")
-    if not content.startswith("---\\n"):
+    if not content.startswith("---\n"):
         raise ValueError("missing YAML frontmatter")
-    end = content.find("\\n---\\n", 4)
+    end = content.find("\n---\n", 4)
     if end < 0:
         raise ValueError("missing closing frontmatter delimiter")
     fields = {}
@@ -95,7 +96,10 @@ def main() -> int:
     actual = {folder.name for folder in folders}
 
     if actual != EXPECTED_SKILLS:
-        errors.append(f"skill catalogue mismatch; missing={sorted(EXPECTED_SKILLS-actual)}, unexpected={sorted(actual-EXPECTED_SKILLS)}")
+        errors.append(
+            f"skill catalogue mismatch; missing={sorted(EXPECTED_SKILLS-actual)}, "
+            f"unexpected={sorted(actual-EXPECTED_SKILLS)}"
+        )
 
     for folder in folders:
         path = folder / "SKILL.md"
@@ -122,9 +126,8 @@ def main() -> int:
     if not tutor.is_file() or hashlib.sha256(tutor.read_bytes()).hexdigest() != UPSTREAM_SHA256:
         errors.append("retained Jane Street Socratic Tutor fingerprint mismatch")
 
-    central_path = EVALS_ROOT / "test_cases.yaml"
     try:
-        central = load_cases(central_path)
+        central = load_cases(EVALS_ROOT / "test_cases.yaml")
     except ValueError as exc:
         errors.append(str(exc))
         central = []
@@ -156,7 +159,7 @@ def main() -> int:
 
     for skill in sorted(EXPECTED_SKILLS):
         if coverage[skill] != {"trigger", "boundary"}:
-            errors.append(f"{skill}: expected one trigger and one boundary case")
+            errors.append(f"{skill}: expected trigger and boundary evaluation cases")
         local_path = EVALS_ROOT / skill / "cases.yaml"
         try:
             local = load_cases(local_path)
