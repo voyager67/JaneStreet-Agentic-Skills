@@ -8,71 +8,78 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-UPSTREAM_SHA256 = "9190b68440ad99be4d865c63b87939f23a362efac0776c5a67c93d1498bb5e37"
-NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+UPSTREAM = "9190b68440ad99be4d865c63b87939f23a362efac0776c5a67c93d1498bb5e37"
 
 
-def parse_frontmatter(path: Path) -> tuple[dict[str, str], str]:
-    text = path.read_text(encoding="utf-8")
-    if not text.startswith("---\n"):
+def parse(path: Path):
+    content = path.read_text(encoding="utf-8")
+    if not content.startswith("---\n"):
         raise ValueError("missing YAML frontmatter")
-    end = text.find("\n---\n", 4)
+    end = content.find("\n---\n", 4)
     if end < 0:
         raise ValueError("missing closing frontmatter delimiter")
-    fields: dict[str, str] = {}
-    for line in text[4:end].splitlines():
+    fields = {}
+    for line in content[4:end].splitlines():
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         if ":" not in line:
             raise ValueError(f"invalid frontmatter line: {line}")
         key, value = line.split(":", 1)
         fields[key.strip()] = value.strip().strip('"').strip("'")
-    return fields, text[end + 5:]
+    return fields, content[end + 5:]
 
 
 def main() -> int:
-    errors: list[str] = []
-    skill_files = sorted(
-        p / "SKILL.md" for p in ROOT.iterdir()
+    errors, names = [], set()
+    dirs = sorted(
+        p for p in ROOT.iterdir()
         if p.is_dir() and (p / "SKILL.md").is_file()
     )
-    names: set[str] = set()
-    for path in skill_files:
+    for folder in dirs:
+        path = folder / "SKILL.md"
         try:
-            fields, body = parse_frontmatter(path)
+            fields, body = parse(path)
         except Exception as exc:
             errors.append(f"{path.relative_to(ROOT)}: {exc}")
             continue
+
         name = fields.get("name", "")
-        desc = fields.get("description", "")
-        if name != path.parent.name:
-            errors.append(f"{path.parent.name}: frontmatter name does not match directory")
-        if not NAME_RE.fullmatch(name):
-            errors.append(f"{path.parent.name}: invalid skill name")
-        if not desc:
-            errors.append(f"{path.parent.name}: description is missing")
+        description = fields.get("description", "")
+        if name != folder.name:
+            errors.append(f"{path}: name must match folder")
+        if not NAME.fullmatch(name):
+            errors.append(f"{path}: invalid name {name!r}")
+        if len(name) > 64:
+            errors.append(f"{path}: name exceeds 64 characters")
+        if not description or len(description) > 1024:
+            errors.append(f"{path}: description missing or too long")
         if name in names:
-            errors.append(f"{path.parent.name}: duplicate skill name")
+            errors.append(f"{path}: duplicate skill name")
         names.add(name)
         if len(body.strip()) < 300:
-            errors.append(f"{path.parent.name}: instructions are too short")
+            errors.append(f"{path}: instructions too short")
         if len(path.read_text(encoding="utf-8").splitlines()) > 500:
-            errors.append(f"{path.parent.name}: exceeds 500 lines")
+            errors.append(f"{path}: exceeds 500 lines")
 
     retained = ROOT / "socratic-tutor" / "SKILL.md"
     if not retained.is_file():
-        errors.append("Jane Street socratic-tutor/SKILL.md is missing")
-    elif hashlib.sha256(retained.read_bytes()).hexdigest() != UPSTREAM_SHA256:
+        errors.append("Jane Street socratic-tutor is missing")
+    elif hashlib.sha256(retained.read_bytes()).hexdigest() != UPSTREAM:
         errors.append("Jane Street socratic-tutor fingerprint mismatch")
-    if len(skill_files) < 16:
-        errors.append(f"expected 16 skills, found {len(skill_files)}")
+
+    if "socratic-tutor" not in names:
+        errors.append("retained skill not discovered")
+    if len(dirs) != 16:
+        errors.append(f"expected 16 skills, found {len(dirs)}")
 
     if errors:
         print("Validation failed:")
         for error in errors:
             print(f"- {error}")
         return 1
-    print(f"Validated {len(skill_files)} skills; Jane Street source fingerprint OK.")
+
+    print(f"Validated {len(dirs)} skills; Jane Street source fingerprint OK.")
     for name in sorted(names):
         print(f"  OK  {name}")
     return 0
