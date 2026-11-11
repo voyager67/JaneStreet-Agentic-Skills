@@ -39,21 +39,19 @@ PRESERVED_BLOBS = {
 
 def git_blob_sha(path):
     data = path.read_bytes()
-    return hashlib.sha1(f"blob {len(data)}\\0".encode("ascii") + data).hexdigest()
+    return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
 
 
 class RepositoryTests(unittest.TestCase):
     def test_expected_skill_directories_exist(self):
-        actual = {
-            path.name for path in SKILLS_ROOT.iterdir()
-            if path.is_dir() and (path / "SKILL.md").exists()
-        }
+        actual = {path.name for path in SKILLS_ROOT.iterdir()
+                  if path.is_dir() and (path / "SKILL.md").exists()}
         self.assertEqual(actual, EXPECTED)
 
     def test_frontmatter_name_matches_directory(self):
         for name in EXPECTED:
             text = (SKILLS_ROOT / name / "SKILL.md").read_text(encoding="utf-8")
-            self.assertTrue(text.startswith("---\\n"), name)
+            self.assertTrue(text.startswith("---\n"), name)
             name_line = next(line for line in text.splitlines() if line.startswith("name:"))
             parsed_name = name_line.split(":", 1)[1].strip().strip('"').strip("'")
             self.assertEqual(parsed_name, name)
@@ -91,8 +89,8 @@ class RepositoryTests(unittest.TestCase):
     def test_learning_skills_have_distinct_content(self):
         required = {
             "mathematical-reasoning": ["proof", "counterexample", "edge cases"],
-            "code-understanding": ["execution path", "root cause", "Do not edit"],
-            "research-paper-tutor": ["claim map", "reproducibility", "authors report"],
+            "code-understanding": ["execution path", "root cause", "do not modify"],
+            "research-paper-tutor": ["claim map", "reproducibility", "authors' statements"],
             "interview-simulator": ["one question at a time", "scoring rubric", "hiring prediction"],
         }
         for name, phrases in required.items():
@@ -119,10 +117,8 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("not affiliated", readme.lower())
 
     def test_structural_validator_passes(self):
-        result = subprocess.run(
-            [sys.executable, str(ROOT / "scripts" / "validate_skills.py")],
-            cwd=ROOT, capture_output=True, text=True, check=False,
-        )
+        result = subprocess.run([sys.executable, str(ROOT / "scripts" / "validate_skills.py")],
+                                cwd=ROOT, capture_output=True, text=True, check=False)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 

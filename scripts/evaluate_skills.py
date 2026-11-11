@@ -26,7 +26,6 @@ def load_cases(path: Path) -> list[dict]:
             return value
         raise ValueError(f"{path}: expected a YAML/JSON list of objects")
     except json.JSONDecodeError:
-        # Backward-compatible JSONL reader for external result fixtures and older case files.
         rows = []
         for line_number, line in enumerate(raw.splitlines(), 1):
             if not line.strip():
@@ -36,7 +35,7 @@ def load_cases(path: Path) -> list[dict]:
             except json.JSONDecodeError as exc:
                 raise ValueError(f"{path}:{line_number}: invalid JSON-compatible YAML: {exc}") from exc
             if not isinstance(value, dict):
-                raise ValueError(f"{path}:{line_number}: each JSONL record must be an object")
+                raise ValueError(f"{path}:{line_number}: each record must be an object")
             rows.append(value)
         return rows
 
@@ -60,10 +59,8 @@ def load_jsonl(path: Path) -> list[dict]:
 def skill_names() -> set[str]:
     if not SKILLS_ROOT.is_dir():
         return set()
-    return {
-        path.name for path in SKILLS_ROOT.iterdir()
-        if path.is_dir() and (path / "SKILL.md").is_file()
-    }
+    return {path.name for path in SKILLS_ROOT.iterdir()
+            if path.is_dir() and (path / "SKILL.md").is_file()}
 
 
 def validate_cases(cases: list[dict]) -> list[str]:
@@ -81,10 +78,7 @@ def validate_cases(cases: list[dict]) -> list[str]:
             errors.append(f"{prefix}: missing fields: {', '.join(sorted(missing))}")
         if extra:
             errors.append(f"{prefix}: unexpected fields: {', '.join(sorted(extra))}")
-        case_id = case.get("id")
-        skill = case.get("skill")
-        kind = case.get("kind")
-        prompt = case.get("prompt")
+        case_id, skill, kind, prompt = (case.get(k) for k in ("id", "skill", "kind", "prompt"))
         if not isinstance(case_id, str) or not case_id.strip():
             errors.append(f"{prefix}: id must be a non-empty string")
         elif case_id in seen:
@@ -107,9 +101,8 @@ def validate_cases(cases: list[dict]) -> list[str]:
                 errors.append(f"{prefix}: {key} must be a non-empty list of strings")
 
     for skill in sorted(known_skills):
-        kinds = coverage.get(skill, set())
         for required_kind in ("trigger", "boundary"):
-            if required_kind not in kinds:
+            if required_kind not in coverage.get(skill, set()):
                 errors.append(f"{skill}: missing {required_kind} evaluation case")
     if not cases:
         errors.append("evaluation case set is empty")
@@ -139,16 +132,12 @@ def render_cases(cases: list[dict], selected_skill: str | None, output_format: s
     if selected_skill is not None and not selected:
         raise ValueError(f"no cases found for skill {selected_skill!r}")
     if output_format == "json":
-        return json.dumps(
-            [{"id": case["id"], "prompt": case["prompt"]} for case in selected],
-            indent=2,
-            ensure_ascii=False,
-        ) + "\\n"
-
+        return json.dumps([{"id": c["id"], "prompt": c["prompt"]} for c in selected],
+                          indent=2, ensure_ascii=False) + "\n"
     blocks = ["# Skill evaluation prompts", ""]
     for case in selected:
         blocks.extend([f"## {case['id']}", "", case["prompt"], ""])
-    return "\\n".join(blocks).rstrip() + "\\n"
+    return "\n".join(blocks).rstrip() + "\n"
 
 
 def validate_results(results: list[dict], cases: list[dict]) -> list[str]:
@@ -192,34 +181,28 @@ def summarize_results(results: list[dict], cases: list[dict], threshold: float) 
     groups: dict[tuple[str, str], list[dict]] = defaultdict(list)
     for result in results:
         groups[(result["model"], result["run_id"])].append(result)
-
     summary = []
     for (model, run_id), rows in sorted(groups.items()):
-        case_scores = [mean(row["scores"][dimension] for dimension in DIMENSIONS) for row in rows]
-        passed = [score >= threshold and not row["critical_failures"] for score, row in zip(case_scores, rows)]
+        scores = [mean(row["scores"][dimension] for dimension in DIMENSIONS) for row in rows]
+        passed = [score >= threshold and not row["critical_failures"] for score, row in zip(scores, rows)]
         per_skill: dict[str, list[float]] = defaultdict(list)
-        for row, score in zip(rows, case_scores):
+        for row, score in zip(rows, scores):
             per_skill[case_by_id[row["case_id"]]["skill"]].append(score)
         summary.append({
-            "model": model,
-            "run_id": run_id,
-            "cases_scored": len(rows),
-            "case_coverage": round(len({row["case_id"] for row in rows}) / len(cases), 3),
-            "mean_score": round(mean(case_scores), 3),
-            "case_passes": sum(passed),
+            "model": model, "run_id": run_id, "cases_scored": len(rows),
+            "case_coverage": round(len({r["case_id"] for r in rows}) / len(cases), 3),
+            "mean_score": round(mean(scores), 3), "case_passes": sum(passed),
             "case_pass_rate": round(sum(passed) / len(passed), 3),
-            "critical_failure_count": sum(len(row["critical_failures"]) for row in rows),
-            "skills": {skill: round(mean(scores), 3) for skill, scores in sorted(per_skill.items())},
+            "critical_failure_count": sum(len(r["critical_failures"]) for r in rows),
+            "skills": {skill: round(mean(values), 3) for skill, values in sorted(per_skill.items())},
         })
     return {"threshold": threshold, "runs": summary}
 
 
 def format_report(summary: dict) -> str:
     lines = [
-        "# Skill evaluation report",
-        "",
-        f"Case pass threshold: **{summary['threshold']:.2f}/2.00**",
-        "",
+        "# Skill evaluation report", "",
+        f"Case pass threshold: **{summary['threshold']:.2f}/2.00**", "",
         "| Model | Run | Cases | Coverage | Mean / 2 | Case pass rate | Critical failures |",
         "|---|---|---:|---:|---:|---:|---:|",
     ]
@@ -234,7 +217,7 @@ def format_report(summary: dict) -> str:
                       "| Skill | Mean / 2 |", "|---|---:|"])
         for skill, score in run["skills"].items():
             lines.append(f"| {skill} | {score:.3f} |")
-    return "\\n".join(lines) + "\\n"
+    return "\n".join(lines) + "\n"
 
 
 def write_output(content: str, output: str | None) -> None:
@@ -268,7 +251,6 @@ def main(argv: list[str] | None = None) -> int:
             for error in errors:
                 print(f"ERROR: {error}", file=sys.stderr)
             return 1
-
         if args.command == "validate":
             print(f"Validated {len(cases)} cases across {len(skill_names())} skills, including per-skill case files.")
             return 0

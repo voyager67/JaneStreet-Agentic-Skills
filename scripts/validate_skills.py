@@ -12,12 +12,11 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS_ROOT = ROOT / "skills"
 NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-URL = re.compile(r"https?://[^\\s)<>]+", re.IGNORECASE)
+URL = re.compile(r"https?://[^\s)<>]+", re.IGNORECASE)
 UPSTREAM_SHA256 = "9190b68440ad99be4d865c63b87939f23a362efac0776c5a67c93d1498bb5e37"
 EXPECTED_SKILL_COUNT = 20
 
-# Git blob object IDs from the 16 existing skill files in the pre-restructure PR.
-# Recomputing these IDs ensures the directory move does not silently edit old skills.
+# Git blob object IDs from the 16 existing skill files before this restructure.
 PRESERVED_SKILL_BLOBS = {
     "agent-based-market-simulation": "7bbc34a461b804890227f34271fe4258a7cc0de2",
     "etf-arbitrage": "c3997858a5348585381ddda0b1f79db9381efd5c",
@@ -40,7 +39,7 @@ PRESERVED_SKILL_BLOBS = {
 
 def git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
-    header = f"blob {len(data)}\\0".encode("ascii")
+    header = f"blob {len(data)}\0".encode("ascii")
     return hashlib.sha1(header + data).hexdigest()
 
 
@@ -58,9 +57,9 @@ def scalar(value: str) -> str:
 
 def parse_frontmatter(path: Path) -> tuple[dict[str, str], str]:
     content = path.read_text(encoding="utf-8")
-    if not content.startswith("---\\n"):
+    if not content.startswith("---\n"):
         raise ValueError("missing YAML frontmatter")
-    end = content.find("\\n---\\n", 4)
+    end = content.find("\n---\n", 4)
     if end < 0:
         raise ValueError("missing closing frontmatter delimiter")
     fields: dict[str, str] = {}
@@ -81,7 +80,7 @@ def parse_ui_metadata(path: Path) -> dict[str, str]:
     text = path.read_text(encoding="utf-8")
     fields = {}
     for key in ("display_name", "short_description", "default_prompt"):
-        match = re.search(rf"^  {key}:\\s*(.+?)\\s*$", text, re.MULTILINE)
+        match = re.search(rf"^  {key}:\s*(.+?)\s*$", text, re.MULTILINE)
         if not match:
             raise ValueError(f"missing interface.{key}")
         fields[key] = scalar(match.group(1))
@@ -89,9 +88,9 @@ def parse_ui_metadata(path: Path) -> dict[str, str]:
             raise ValueError(f"interface.{key} is empty")
     if len(fields["short_description"]) > 64:
         raise ValueError("interface.short_description exceeds 64 characters")
-    if not re.search(r"^policy:\\s*$", text, re.MULTILINE):
+    if not re.search(r"^policy:\s*$", text, re.MULTILINE):
         raise ValueError("missing policy section")
-    if not re.search(r"^  allow_implicit_invocation:\\s*(true|false)\\s*$", text, re.MULTILINE):
+    if not re.search(r"^  allow_implicit_invocation:\s*(true|false)\s*$", text, re.MULTILINE):
         raise ValueError("policy.allow_implicit_invocation must be boolean")
     return fields
 
@@ -99,10 +98,8 @@ def parse_ui_metadata(path: Path) -> dict[str, str]:
 def skill_directories() -> list[Path]:
     if not SKILLS_ROOT.is_dir():
         return []
-    return sorted(
-        path for path in SKILLS_ROOT.iterdir()
-        if path.is_dir() and (path / "SKILL.md").is_file()
-    )
+    return sorted(path for path in SKILLS_ROOT.iterdir()
+                  if path.is_dir() and (path / "SKILL.md").is_file())
 
 
 def check_urls(path: Path, errors: list[str]) -> None:
@@ -177,9 +174,10 @@ def main() -> int:
             errors.append(f"{doc_name} is missing")
             continue
         doc = path.read_text(encoding="utf-8")
-        for name in sorted(names):
-            if name not in doc and doc_name in {"README.md", "SKILLS.md"}:
-                errors.append(f"{doc_name} does not reference skill {name!r}")
+        if doc_name in {"README.md", "SKILLS.md"}:
+            for name in sorted(names):
+                if name not in doc:
+                    errors.append(f"{doc_name} does not reference skill {name!r}")
         check_urls(path, errors)
 
     if errors:
