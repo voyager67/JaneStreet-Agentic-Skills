@@ -1,6 +1,0 @@
-interface:
-  display_name: "Market-Making Research"
-  short_description: "Research inventory-aware quoting"
-  default_prompt: "Use the market-making skill to specify fair value, inventory-aware bid/ask logic, fill and markout economics, hedging, and operational quote lifecycle. Do not place live orders."
-policy:
-  allow_implicit_invocation: true

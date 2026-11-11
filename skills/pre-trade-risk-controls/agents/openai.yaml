@@ -1,6 +1,0 @@
-interface:
-  display_name: "Pre-Trade Risk Controls"
-  short_description: "Specify and test trading risk gates"
-  default_prompt: "Use the pre-trade-risk-controls skill to define hard limits, pre-trade validation, stale-data behavior, kill-switch hierarchy, failure handling, and control tests. Never bypass approval."
-policy:
-  allow_implicit_invocation: true

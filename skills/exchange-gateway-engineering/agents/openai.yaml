@@ -1,6 +1,0 @@
-interface:
-  display_name: "Exchange Gateway Engineering"
-  short_description: "Design safe exchange order state machines"
-  default_prompt: "Use the exchange-gateway-engineering skill to audit protocol semantics, order-state transitions, sequencing, throttles, disconnect recovery, and fault-injection tests. Do not send live orders."
-policy:
-  allow_implicit_invocation: true
