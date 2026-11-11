@@ -22,14 +22,15 @@ class EvaluationTests(unittest.TestCase):
 
     def test_render_does_not_leak_expected_behaviors_or_failure_criteria(self):
         rendered = evaluate_skills.render_cases(self.cases, "hft-market-replay", "markdown")
-        self.assertIn("hft-market-replay-trigger", rendered)
+        self.assertIn("CASE-009", rendered)
         self.assertIn("exchange timestamps", rendered)
         self.assertNotIn("expected_behaviors", rendered)
         self.assertNotIn("critical_failures", rendered)
         self.assertNotIn("Uses only information received", rendered)
+        self.assertNotIn("hft-market-replay", rendered)
 
     def test_score_summary_flags_critical_failures(self):
-        case = next(c for c in self.cases if c["id"] == "hft-market-replay-trigger")
+        case = next(c for c in self.cases if c["id"] == "CASE-009")
         result = {
             "case_id": case["id"],
             "model": "test-model",
@@ -45,7 +46,7 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(run["case_passes"], 0)
 
     def test_score_summary_accepts_complete_clean_case(self):
-        case = next(c for c in self.cases if c["id"] == "market-making-trigger")
+        case = next(c for c in self.cases if c["id"] == "CASE-015")
         result = {
             "case_id": case["id"],
             "model": "test-model",
