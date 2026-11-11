@@ -1,6 +1,0 @@
-interface:
-  display_name: "Execution Analysis"
-  short_description: "Measure execution quality and transaction costs"
-  default_prompt: "Use the execution-analysis skill to define benchmarks ex ante, decompose implementation shortfall, compare schedules, and report unfilled quantity, market impact, and uncertainty."
-policy:
-  allow_implicit_invocation: true

@@ -1,34 +1,22 @@
 Jane Street Agentic Skills Repository
 Copyright 2026 HARSH SINGH
 
-Unless otherwise noted below, the original quantitative-trading skills,
-the four additional learning/research skills, repository-authored
-documentation, supplemental references/examples, validation scripts, and
-tests in this repository are licensed under the Apache License, Version 2.0.
-See LICENSE.
+Unless otherwise noted, repository-authored skills, documentation, examples,
+validation code, and evaluation cases are licensed under Apache-2.0. See
+LICENSE.
 
-Third-party material and acknowledgements
+Third-party material
 
-- The file skills/socratic-tutor/SKILL.md is from Jane Street's public
-  agent_skills repository (https://github.com/janestreet/agent_skills). It is
-  retained unchanged and remains Copyright (c) 2026 Jane Street Group, LLC,
-  under the MIT License. The applicable original license is included at
-  skills/socratic-tutor/LICENSE.md. This material is not relicensed under
-  Apache-2.0.
-- The companion files in skills/socratic-tutor/references/ and
-  skills/socratic-tutor/examples/ are independently authored repository
-  material. They are not part of Jane Street's original skill and are
-  distributed under Apache-2.0.
-- Other projects, papers, documentation, specifications, and websites cited
-  in README.md are acknowledged as references only. Their works are not
-  included or relicensed by this repository unless explicitly stated. Their
-  respective licenses, terms, attribution requirements, and trademarks remain
-  applicable to those upstream materials.
-- The name Jane Street is used only to identify the source of the retained
-  third-party skill and relevant public references. This project is
-  independent and is not affiliated with, sponsored by, or endorsed by
-  Jane Street Group, LLC.
+- skills/socratic-tutor/SKILL.md is retained from Jane Street's public
+  agent_skills repository (https://github.com/janestreet/agent_skills). It
+  remains Copyright (c) 2026 Jane Street Group, LLC, under its original MIT
+  License, included at skills/socratic-tutor/LICENSE.md. It is not relicensed
+  under Apache-2.0.
+- The assessment rubric, session-state reference, and example session beside
+  the retained tutor are independently authored repository material and are
+  licensed under Apache-2.0.
+- Other cited projects and publications are references only; their original
+  licenses, terms, attribution, and trademarks remain applicable.
 
-This NOTICE is informational. It does not modify the Apache License, Version
-2.0, or the separate MIT License that applies to the retained Jane Street
-skill.
+This project is independent and is not affiliated with, sponsored by, or
+endorsed by Jane Street Group, LLC.

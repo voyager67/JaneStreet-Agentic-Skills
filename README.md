@@ -1,25 +1,72 @@
 # JaneStreet Agentic Skills
 
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
-[![Skill validation](https://github.com/voyager67/JaneStreet-Agentic-Skills/actions/workflows/skill-validation.yml/badge.svg)](https://github.com/voyager67/JaneStreet-Agentic-Skills/actions/workflows/skill-validation.yml)
+A focused collection of reusable agent skills for quantitative trading, market microstructure, systems engineering, mathematics, software development, research, and technical learning.
 
-**A portable, evaluated skill collection for quantitative trading, systems engineering, mathematical reasoning, and technical learning.**
+## Skills
 
-The repository contains 15 independently authored quantitative-trading and trading-systems skills, four additional learning/research skills, and Jane Street's original Socratic Tutor retained under its separate MIT license. All skill packages live under `skills/`.
+### Quantitative trading and market structure
+
+| Skill | Purpose |
+|---|---|
+| [LOB Microstructure](skills/lob-microstructure/) | Order-flow imbalance, spread and depth, microprice, impact, and adverse selection |
+| [Order Book Reconstruction](skills/order-book-reconstruction/) | Exchange-message parsing, MBO/L2 state, sequencing, and recovery |
+| [Queue Position Modeling](skills/queue-position-modeling/) | Queue-ahead estimation and passive fill probability |
+| [Market Making](skills/market-making/) | Inventory-aware quoting, fills, markouts, and hedging |
+| [ETF Arbitrage](skills/etf-arbitrage/) | Basket valuation, creation/redemption, premiums, discounts, and costs |
+| [Volatility Market Making](skills/volatility-market-making/) | Options quoting, volatility surfaces, Greeks, and hedging |
+| [Quant Research Validation](skills/quant-research-validation/) | Leakage, multiple testing, costs, and out-of-sample research |
+| [Agent-Based Market Simulation](skills/agent-based-market-simulation/) | Discrete-event market simulations and interacting agents |
+
+### Execution and trading systems
+
+| Skill | Purpose |
+|---|---|
+| [HFT Market Replay](skills/hft-market-replay/) | Tick-level replay, latency, event ordering, and fill assumptions |
+| [Execution Analysis](skills/execution-analysis/) | Implementation shortfall, slippage, impact, and execution schedules |
+| [Tick Data Engineering](skills/tick-data-engineering/) | Market-data pipelines, timestamps, sequencing, and provenance |
+| [Exchange Gateway Engineering](skills/exchange-gateway-engineering/) | Order-entry protocols, state machines, acknowledgements, and recovery |
+| [Low-Latency Performance](skills/low-latency-performance/) | Latency measurement, profiling, and tail performance |
+| [Pre-Trade Risk Controls](skills/pre-trade-risk-controls/) | Order limits, stale-data checks, throttles, and kill switches |
+| [Production Trading Operations](skills/production-trading-operations/) | Monitoring, reconciliation, release readiness, and incident response |
+
+### Mathematics, software, and learning
+
+| Skill | Purpose |
+|---|---|
+| [Socratic Tutor](skills/socratic-tutor/) | Structured question-led learning and mastery tracking |
+| [Mathematical Reasoning](skills/mathematical-reasoning/) | Problem solving, derivations, proofs, and verification |
+| [Code Understanding](skills/code-understanding/) | Codebase comprehension, execution tracing, and debugging |
+| [Research Paper Tutor](skills/research-paper-tutor/) | Paper walkthroughs, methods, evidence, and limitations |
+| [Interview Simulator](skills/interview-simulator/) | Technical interview practice and scored feedback |
+
+## Mastery levels
+
+The Socratic Tutor uses a six-level scale to track demonstrated understanding:
+
+| Level | Description |
+|---:|---|
+| 0 | Unaware |
+| 1 | Heard of the concept |
+| 2 | Can follow an explanation |
+| 3 | Can complete a task with help |
+| 4 | Can work independently |
+| 5 | Can handle edge cases and teach the concept |
+
+Levels are evidence-based. A level should reflect demonstrated performance, not lesson completion or confidence alone. The [assessment rubric](skills/socratic-tutor/references/assessment-rubric.md) describes the evidence standard.
 
 ## Repository structure
 
 ```text
-JaneStreet-Agentic-Skills/
+.
 ├── README.md
 ├── LICENSE
+├── NOTICE
 ├── CONTRIBUTING.md
 ├── CHANGELOG.md
-├── ROADMAP.md
 ├── skills/
 │   ├── socratic-tutor/
-│   │   ├── SKILL.md                  # retained unchanged
-│   │   ├── LICENSE.md                # original MIT license
+│   │   ├── SKILL.md
+│   │   ├── LICENSE.md
 │   │   ├── references/
 │   │   │   ├── assessment-rubric.md
 │   │   │   └── session-state.md
@@ -28,123 +75,34 @@ JaneStreet-Agentic-Skills/
 │   ├── code-understanding/
 │   ├── research-paper-tutor/
 │   ├── interview-simulator/
-│   └── ... 15 existing quantitative-trading skills
+│   └── ... quantitative trading and systems skills
 ├── evals/
 │   ├── test_cases.yaml
-│   └── <skill-name>/cases.yaml
+│   └── <skill-name>/
+│       └── cases.yaml
 ├── scripts/
-│   ├── validate_skills.py
-│   ├── evaluate_skills.py
-│   └── install_skills.py
-└── .github/workflows/
-    └── skill-validation.yml
+│   └── validate_skills.py
+└── .github/
+    └── workflows/
+        └── skill-validation.yml
 ```
 
-All 16 existing skills were moved under `skills/` without changing their original `SKILL.md` content. The validator checks their Git blob hashes to prevent accidental edits.
+## Use a skill
 
-## Skill catalogue
+Open the relevant skill directory and use its `SKILL.md` with an agent that supports the Agent Skills format. Include any companion `references/` or `examples/` files provided by that skill. Follow the skill host's instructions for installing or importing skills.
 
-### Market microstructure
+## Evaluation and validation
 
-- **[lob-microstructure](skills/lob-microstructure/)** — order-flow imbalance, spread/depth, microprice, price impact, and adverse selection.
-- **[order-book-reconstruction](skills/order-book-reconstruction/)** — exchange-message parsing, MBO/L2 state, sequencing, invariants, and recovery.
-- **[queue-position-modeling](skills/queue-position-modeling/)** — queue-ahead estimation, passive fill probability, and uncertainty bounds.
+The `evals/` directory contains example activation and boundary cases for each skill. The central file lists all cases; each skill directory contains its own cases.
 
-### Trading and quantitative research
-
-- **[market-making](skills/market-making/)** — inventory-aware quoting, fill/markout models, spread economics, and hedging.
-- **[etf-arbitrage](skills/etf-arbitrage/)** — basket value, creation/redemption, premium/discount, cross-asset hedges, and frictions.
-- **[volatility-market-making](skills/volatility-market-making/)** — options quoting, volatility surfaces, Greeks, hedging, and scenario risk.
-- **[quant-research-validation](skills/quant-research-validation/)** — leakage, survivorship, multiple testing, realistic costs, and out-of-sample validation.
-- **[agent-based-market-simulation](skills/agent-based-market-simulation/)** — discrete-event market simulation with interacting agents and explicit exchange rules.
-
-### Execution and trading systems
-
-- **[hft-market-replay](skills/hft-market-replay/)** — tick-level replay, latency, event ordering, queue-aware fills, and impact assumptions.
-- **[execution-analysis](skills/execution-analysis/)** — implementation shortfall, slippage, participation, impact, and execution schedules.
-- **[tick-data-engineering](skills/tick-data-engineering/)** — tick-data pipelines, timestamp semantics, sequence recovery, and provenance.
-- **[exchange-gateway-engineering](skills/exchange-gateway-engineering/)** — order-entry state machines, protocols, acknowledgements, throttles, and recovery.
-- **[low-latency-performance](skills/low-latency-performance/)** — tail-latency measurement and systems profiling.
-- **[pre-trade-risk-controls](skills/pre-trade-risk-controls/)** — pre-trade limits, stale-data guards, throttles, and kill switches.
-- **[production-trading-operations](skills/production-trading-operations/)** — production readiness, telemetry, reconciliation, incidents, and release controls.
-
-### Mathematical and technical learning
-
-- **[socratic-tutor](skills/socratic-tutor/)** — Jane Street's original structured Socratic tutor, retained unchanged under MIT.
-- **[mathematical-reasoning](skills/mathematical-reasoning/)** — rigorous problem solving, derivations, proofs, counterexamples, and verification.
-- **[code-understanding](skills/code-understanding/)** — codebase comprehension, execution tracing, root-cause debugging, and guided learning.
-- **[research-paper-tutor](skills/research-paper-tutor/)** — paper walkthroughs, method/equation explanations, evidence appraisal, and reproducibility critique.
-- **[interview-simulator](skills/interview-simulator/)** — adaptive technical interviews with evidence-based scoring and feedback.
-
-## Quick start
-
-Clone and install the full collection:
+Run the repository validator with Python 3.10 or later:
 
 ```bash
-git clone https://github.com/voyager67/JaneStreet-Agentic-Skills.git
-cd JaneStreet-Agentic-Skills
-
-# Codex project skills
-python3 scripts/install_skills.py --agent codex --scope project
-
-# Claude Code project skills
-python3 scripts/install_skills.py --agent claude-code --scope project
+python scripts/validate_skills.py
 ```
 
-Install only selected skills:
+## Licensing
 
-```bash
-python3 scripts/install_skills.py --agent codex --scope project --skills market-making,mathematical-reasoning,research-paper-tutor
-```
+Repository-authored skills and documentation are licensed under Apache-2.0. The original `skills/socratic-tutor/SKILL.md` is retained unchanged under Jane Street's MIT license, included at [skills/socratic-tutor/LICENSE.md](skills/socratic-tutor/LICENSE.md). See [NOTICE](NOTICE) for attribution and license separation.
 
-Preview with `--dry-run`. Existing destination folders are not overwritten unless `--force` is supplied. See [COMPATIBILITY.md](COMPATIBILITY.md) for user installs and custom destinations.
-
-## Validation and behavioral evaluation
-
-Run structural checks and tests:
-
-```bash
-python3 scripts/validate_skills.py
-python3 -m unittest discover -s tests -v
-python3 scripts/evaluate_skills.py validate
-```
-
-The evaluation suite contains two cases per skill: a realistic trigger and a boundary/stress scenario. Cases are available centrally in `evals/test_cases.yaml` and individually in `evals/<skill-name>/cases.yaml`. These files use YAML 1.2's JSON-compatible subset so they remain readable YAML without requiring a third-party parser.
-
-Render blinded prompts without evaluation criteria:
-
-```bash
-python3 scripts/evaluate_skills.py render
-python3 scripts/evaluate_skills.py render --skill mathematical-reasoning
-python3 scripts/evaluate_skills.py render --format json --output /tmp/skill-prompts.json
-```
-
-Score completed reviewer records:
-
-```bash
-python3 scripts/evaluate_skills.py score path/to/reviewer-results.jsonl
-```
-
-The repository does not call model APIs or invent benchmark results. Actual skill-enabled versus baseline model comparisons still need to be run and reviewed. See [EVALUATION.md](EVALUATION.md).
-
-## Version roadmap
-
-See [ROADMAP.md](ROADMAP.md) for scope and acceptance gates.
-
-| Version | Main objective |
-|---|---|
-| 0.2.0 | Evaluation framework and session-state improvements |
-| 0.3.0 | Adaptive assessment and spaced-repetition improvements |
-| 0.4.0 | Cross-agent compatibility and automated validation |
-| 0.5.0 | Mathematical reasoning and research tutor |
-| 1.0.0 | Stable, tested skill collection with documented benchmarks |
-
-## Scope, attribution, and licensing
-
-The trading skills guide research and engineering. They are not exchange connectivity, trading software, market data, investment recommendations, or permission to place orders. No skill grants tool access or data entitlements. Live trading, production changes, and limit changes require explicit authorization and organizational controls.
-
-This project is independent and is not affiliated with, sponsored by, or endorsed by Jane Street Group, LLC. The original `skills/socratic-tutor/SKILL.md` from [Jane Street's public agent_skills repository](https://github.com/janestreet/agent_skills) is retained unchanged under its original MIT license. The supplemental references and examples in that directory are repository-authored material under Apache-2.0. Repository-authored skills, scripts, tests, and documentation are also Apache-2.0. See [NOTICE](NOTICE) and [the original MIT license](skills/socratic-tutor/LICENSE.md).
-
-Public references informing the quantitative scope include Jane Street's [trading overview](https://www.janestreet.com/what-we-do/overview/), the [SEC ETF investor bulletin](https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-24), [HftBacktest](https://github.com/nkaz001/hftbacktest), [ML4T Agent Skills](https://github.com/ml4t/skills), [ABIDES-JPMC](https://github.com/jpmorganchase/abides-jpmc-public), [JAX-LOB](https://arxiv.org/abs/2308.13289), Nasdaq [ITCH](https://nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHspecification.pdf) and [OUCH](https://nasdaqtrader.com/Trader.aspx?id=OUCH), NYSE [Pillar](https://www.nyse.com/trade/pillar), Avellaneda and Stoikov's [market-making model](https://doi.org/10.1080/14697680701381228), Cont, Kukanov and Stoikov's [order-book impact study](https://doi.org/10.1093/jjfinec/nbt003), and Rigtorp's [queue-position estimation](https://rigtorp.se/2013/06/08/estimating-order-queue-position/). These links are references, not included third-party code or endorsements.
-
-See [CHANGELOG.md](CHANGELOG.md) for changes and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution requirements.
+This is an independent project and is not affiliated with or endorsed by Jane Street Group, LLC.

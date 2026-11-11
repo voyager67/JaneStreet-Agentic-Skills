@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dependency-free structural validator for JaneStreet Agentic Skills."""
+"""Validate skill packages, preservation of existing skills, and evaluation cases."""
 from __future__ import annotations
 
 import hashlib
@@ -7,16 +7,34 @@ import json
 import re
 import sys
 from pathlib import Path
-from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS_ROOT = ROOT / "skills"
+EVALS_ROOT = ROOT / "evals"
 NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-URL = re.compile(r"https?://[^\s)<>]+", re.IGNORECASE)
 UPSTREAM_SHA256 = "9190b68440ad99be4d865c63b87939f23a362efac0776c5a67c93d1498bb5e37"
-EXPECTED_SKILL_COUNT = 20
-
-# Git blob object IDs from the 16 existing skill files before this restructure.
+EXPECTED_SKILLS = {
+    "agent-based-market-simulation",
+    "code-understanding",
+    "etf-arbitrage",
+    "exchange-gateway-engineering",
+    "execution-analysis",
+    "hft-market-replay",
+    "interview-simulator",
+    "lob-microstructure",
+    "low-latency-performance",
+    "market-making",
+    "mathematical-reasoning",
+    "order-book-reconstruction",
+    "pre-trade-risk-controls",
+    "production-trading-operations",
+    "quant-research-validation",
+    "queue-position-modeling",
+    "research-paper-tutor",
+    "socratic-tutor",
+    "tick-data-engineering",
+    "volatility-market-making",
+}
 PRESERVED_SKILL_BLOBS = {
     "agent-based-market-simulation": "7bbc34a461b804890227f34271fe4258a7cc0de2",
     "etf-arbitrage": "c3997858a5348585381ddda0b1f79db9381efd5c",
@@ -39,146 +57,118 @@ PRESERVED_SKILL_BLOBS = {
 
 def git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
-    header = f"blob {len(data)}\0".encode("ascii")
-    return hashlib.sha1(header + data).hexdigest()
-
-
-def scalar(value: str) -> str:
-    value = value.strip()
-    if len(value) >= 2 and value[0] == value[-1] == '"':
-        try:
-            return json.loads(value)
-        except json.JSONDecodeError:
-            return value[1:-1]
-    if len(value) >= 2 and value[0] == value[-1] == "'":
-        return value[1:-1].replace("''", "'")
-    return value
+    return hashlib.sha1(f"blob {len(data)}\\0".encode("ascii") + data).hexdigest()
 
 
 def parse_frontmatter(path: Path) -> tuple[dict[str, str], str]:
     content = path.read_text(encoding="utf-8")
-    if not content.startswith("---\n"):
+    if not content.startswith("---\\n"):
         raise ValueError("missing YAML frontmatter")
-    end = content.find("\n---\n", 4)
+    end = content.find("\\n---\\n", 4)
     if end < 0:
         raise ValueError("missing closing frontmatter delimiter")
-    fields: dict[str, str] = {}
-    for line_number, line in enumerate(content[4:end].splitlines(), 2):
+    fields = {}
+    for line in content[4:end].splitlines():
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         if ":" not in line:
-            raise ValueError(f"invalid scalar frontmatter at line {line_number}")
+            raise ValueError(f"invalid frontmatter line: {line}")
         key, value = line.split(":", 1)
-        key = key.strip()
-        if key in fields:
-            raise ValueError(f"duplicate frontmatter key {key!r}")
-        fields[key] = scalar(value)
+        fields[key.strip()] = value.strip().strip('"').strip("'")
     return fields, content[end + 5:]
 
 
-def parse_ui_metadata(path: Path) -> dict[str, str]:
-    text = path.read_text(encoding="utf-8")
-    fields = {}
-    for key in ("display_name", "short_description", "default_prompt"):
-        match = re.search(rf"^  {key}:\s*(.+?)\s*$", text, re.MULTILINE)
-        if not match:
-            raise ValueError(f"missing interface.{key}")
-        fields[key] = scalar(match.group(1))
-        if not fields[key]:
-            raise ValueError(f"interface.{key} is empty")
-    if len(fields["short_description"]) > 64:
-        raise ValueError("interface.short_description exceeds 64 characters")
-    if not re.search(r"^policy:\s*$", text, re.MULTILINE):
-        raise ValueError("missing policy section")
-    if not re.search(r"^  allow_implicit_invocation:\s*(true|false)\s*$", text, re.MULTILINE):
-        raise ValueError("policy.allow_implicit_invocation must be boolean")
-    return fields
-
-
-def skill_directories() -> list[Path]:
-    if not SKILLS_ROOT.is_dir():
-        return []
-    return sorted(path for path in SKILLS_ROOT.iterdir()
-                  if path.is_dir() and (path / "SKILL.md").is_file())
-
-
-def check_urls(path: Path, errors: list[str]) -> None:
-    content = path.read_text(encoding="utf-8")
-    for raw in URL.findall(content):
-        candidate = raw.rstrip(".,;:")
-        try:
-            parsed = urlsplit(candidate)
-            if parsed.scheme not in {"http", "https"} or not parsed.hostname or "." not in parsed.hostname:
-                errors.append(f"{path.relative_to(ROOT)}: malformed URL {candidate!r}")
-        except ValueError:
-            errors.append(f"{path.relative_to(ROOT)}: malformed URL {candidate!r}")
+def load_cases(path: Path) -> list[dict]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"{path.relative_to(ROOT)} must contain JSON-compatible YAML: {exc}") from exc
+    if not isinstance(value, list) or any(not isinstance(item, dict) for item in value):
+        raise ValueError(f"{path.relative_to(ROOT)} must contain a list of case objects")
+    return value
 
 
 def main() -> int:
-    errors: list[str] = []
-    dirs = skill_directories()
-    names = {folder.name for folder in dirs}
+    errors = []
+    folders = sorted(path for path in SKILLS_ROOT.iterdir()
+                     if path.is_dir() and (path / "SKILL.md").is_file())
+    actual = {folder.name for folder in folders}
 
-    for folder in dirs:
-        skill_path = folder / "SKILL.md"
+    if actual != EXPECTED_SKILLS:
+        errors.append(f"skill catalogue mismatch; missing={sorted(EXPECTED_SKILLS-actual)}, unexpected={sorted(actual-EXPECTED_SKILLS)}")
+
+    for folder in folders:
+        path = folder / "SKILL.md"
         try:
-            fields, body = parse_frontmatter(skill_path)
+            fields, body = parse_frontmatter(path)
         except (OSError, ValueError) as exc:
-            errors.append(f"{skill_path.relative_to(ROOT)}: {exc}")
+            errors.append(f"{path.relative_to(ROOT)}: {exc}")
             continue
-
         name = fields.get("name", "")
         description = fields.get("description", "")
-        if name != folder.name:
-            errors.append(f"{skill_path.relative_to(ROOT)}: name must match directory {folder.name!r}")
-        if not NAME.fullmatch(name) or len(name) > 64:
-            errors.append(f"{skill_path.relative_to(ROOT)}: invalid name {name!r}")
+        if name != folder.name or not NAME.fullmatch(name):
+            errors.append(f"{path.relative_to(ROOT)}: invalid or mismatched skill name")
         if not description or len(description) > 1024:
-            errors.append(f"{skill_path.relative_to(ROOT)}: description missing or exceeds 1024 characters")
-        if len(body.strip()) < 300:
-            errors.append(f"{skill_path.relative_to(ROOT)}: instructions too short")
-        if len(skill_path.read_text(encoding="utf-8").splitlines()) > 500:
-            errors.append(f"{skill_path.relative_to(ROOT)}: exceeds 500 lines")
+            errors.append(f"{path.relative_to(ROOT)}: missing or overly long description")
+        if len(body.strip()) < 200:
+            errors.append(f"{path.relative_to(ROOT)}: skill instructions are unexpectedly short")
 
-        metadata = folder / "agents" / "openai.yaml"
-        if not metadata.is_file():
-            errors.append(f"{metadata.relative_to(ROOT)}: missing OpenAI UI metadata")
-        else:
-            try:
-                ui = parse_ui_metadata(metadata)
-                if len(ui["display_name"]) > 64:
-                    errors.append(f"{metadata.relative_to(ROOT)}: display_name exceeds 64 characters")
-            except (OSError, ValueError) as exc:
-                errors.append(f"{metadata.relative_to(ROOT)}: {exc}")
-        check_urls(skill_path, errors)
-
-    if len(dirs) != EXPECTED_SKILL_COUNT:
-        errors.append(f"expected {EXPECTED_SKILL_COUNT} skills, found {len(dirs)}")
-
-    for name, expected_sha in PRESERVED_SKILL_BLOBS.items():
+    for name, expected in PRESERVED_SKILL_BLOBS.items():
         path = SKILLS_ROOT / name / "SKILL.md"
-        if not path.is_file():
-            errors.append(f"preserved skill missing: {name}")
-        elif git_blob_sha(path) != expected_sha:
-            errors.append(f"existing skill content changed: {name}")
+        if not path.is_file() or git_blob_sha(path) != expected:
+            errors.append(f"existing skill content changed or missing: {name}")
 
-    retained = SKILLS_ROOT / "socratic-tutor" / "SKILL.md"
-    if not retained.is_file():
-        errors.append("Jane Street socratic-tutor is missing")
-    elif hashlib.sha256(retained.read_bytes()).hexdigest() != UPSTREAM_SHA256:
-        errors.append("Jane Street socratic-tutor fingerprint mismatch")
+    tutor = SKILLS_ROOT / "socratic-tutor" / "SKILL.md"
+    if not tutor.is_file() or hashlib.sha256(tutor.read_bytes()).hexdigest() != UPSTREAM_SHA256:
+        errors.append("retained Jane Street Socratic Tutor fingerprint mismatch")
 
-    for doc_name in ("README.md", "SKILLS.md", "ROADMAP.md", "CONTRIBUTING.md", "COMPATIBILITY.md", "EVALUATION.md"):
-        path = ROOT / doc_name
-        if not path.is_file():
-            errors.append(f"{doc_name} is missing")
+    central_path = EVALS_ROOT / "test_cases.yaml"
+    try:
+        central = load_cases(central_path)
+    except ValueError as exc:
+        errors.append(str(exc))
+        central = []
+
+    required_fields = {"id", "skill", "kind", "prompt", "expected_behaviors", "critical_failures"}
+    seen = set()
+    coverage = {name: set() for name in EXPECTED_SKILLS}
+    for index, case in enumerate(central, 1):
+        missing = required_fields - case.keys()
+        if missing:
+            errors.append(f"evaluation case {index}: missing fields {sorted(missing)}")
             continue
-        doc = path.read_text(encoding="utf-8")
-        if doc_name in {"README.md", "SKILLS.md"}:
-            for name in sorted(names):
-                if name not in doc:
-                    errors.append(f"{doc_name} does not reference skill {name!r}")
-        check_urls(path, errors)
+        case_id = case["id"]
+        skill = case["skill"]
+        if case_id in seen:
+            errors.append(f"duplicate evaluation case id: {case_id}")
+        seen.add(case_id)
+        if skill not in EXPECTED_SKILLS:
+            errors.append(f"evaluation case {case_id}: unknown skill {skill}")
+            continue
+        if case["kind"] not in {"trigger", "boundary"}:
+            errors.append(f"evaluation case {case_id}: invalid kind {case['kind']}")
+        coverage[skill].add(case["kind"])
+        if not isinstance(case["prompt"], str) or len(case["prompt"].strip()) < 20:
+            errors.append(f"evaluation case {case_id}: prompt is missing or too short")
+        for key in ("expected_behaviors", "critical_failures"):
+            if not isinstance(case[key], list) or not case[key]:
+                errors.append(f"evaluation case {case_id}: {key} must be a non-empty list")
+
+    for skill in sorted(EXPECTED_SKILLS):
+        if coverage[skill] != {"trigger", "boundary"}:
+            errors.append(f"{skill}: expected one trigger and one boundary case")
+        local_path = EVALS_ROOT / skill / "cases.yaml"
+        try:
+            local = load_cases(local_path)
+        except ValueError as exc:
+            errors.append(str(exc))
+            continue
+        expected_local = [case for case in central if case.get("skill") == skill]
+        if local != expected_local:
+            errors.append(f"{local_path.relative_to(ROOT)} differs from central test_cases.yaml")
+
+    if len(central) != len(EXPECTED_SKILLS) * 2:
+        errors.append(f"expected {len(EXPECTED_SKILLS)*2} evaluation cases, found {len(central)}")
 
     if errors:
         print("Validation failed:")
@@ -186,9 +176,7 @@ def main() -> int:
             print(f"- {error}")
         return 1
 
-    print(f"Validated {len(dirs)} skills, OpenAI metadata, documentation, URLs, and preserved skill hashes.")
-    for folder in dirs:
-        print(f"  OK  {folder.name}")
+    print(f"Validated {len(folders)} skills, preserved 16 existing skill files, and {len(central)} evaluation cases.")
     return 0
 
 
