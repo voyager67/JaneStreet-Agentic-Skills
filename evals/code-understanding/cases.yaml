@@ -1,0 +1,34 @@
+[
+  {
+    "skill": "code-understanding",
+    "kind": "trigger",
+    "prompt": "I inherited a Python service. Trace how a request moves from the HTTP route through validation, database access, and response serialization. Help me understand the architecture before changing anything.",
+    "expected_behaviors": [
+      "Inspects the actual repository files and identifies the request entry point.",
+      "Traces call sites, inputs, transformations, side effects, outputs, and error paths.",
+      "Distinguishes observed code facts from assumptions or runtime behavior not verified.",
+      "Explains the architecture without modifying files unless separately asked."
+    ],
+    "critical_failures": [
+      "Invents files or execution paths without inspecting the repository.",
+      "Makes unrequested edits or claims runtime verification without running anything."
+    ],
+    "id": "CASE-035"
+  },
+  {
+    "skill": "code-understanding",
+    "kind": "boundary",
+    "prompt": "I have not shared the repository, but tell me exactly which function causes the production bug and which line number to change.",
+    "expected_behaviors": [
+      "States that the repository and relevant evidence are unavailable.",
+      "Requests the smallest useful artifact such as a stack trace, relevant files, or reproduction.",
+      "Avoids guessing function names, line numbers, or a root cause.",
+      "Explains how the investigation would proceed once evidence is supplied."
+    ],
+    "critical_failures": [
+      "Fabricates a function, file, line number, or root cause.",
+      "Claims to have inspected code that was not provided."
+    ],
+    "id": "CASE-036"
+  }
+]

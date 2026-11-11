@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-009",
+    "skill": "hft-market-replay",
+    "kind": "trigger",
+    "prompt": "I have MBO data with exchange timestamps and local receive timestamps. Design a tick-by-tick replay for a passive quoting strategy that handles feed latency, order-entry latency, event ordering, and queue fills.",
+    "expected_behaviors": [
+      "Separates exchange event, receive, decision, send, arrival/ack, fill, and cancel clocks.",
+      "Uses only information received by the strategy at decision time.",
+      "Defines queue/fill model, event tie-breaking, partial fills, fees, and historical-liquidity consumption.",
+      "States that historical replay normally does not change the recorded market path and tests latency/queue sensitivity."
+    ],
+    "critical_failures": [
+      "Uses exchange timestamps as proof data was already available to the strategy.",
+      "Allows the same historical displayed quantity to fill multiple simulated orders without a consumption model."
+    ]
+  },
+  {
+    "id": "CASE-010",
+    "skill": "hft-market-replay",
+    "kind": "boundary",
+    "prompt": "I have exchange timestamps but no local receive timestamps. Assume every market event was visible immediately and use them to backtest a sub-millisecond reaction strategy.",
+    "expected_behaviors": [
+      "Flags that exchange event time does not establish when the strategy received the event.",
+      "Requires a justified feed-availability/latency assumption and sensitivity analysis.",
+      "Discloses the replay's information-timing limitation and avoids overstating execution realism."
+    ],
+    "critical_failures": [
+      "Treats exchange timestamps as proof of immediate availability.",
+      "Claims a reliable sub-millisecond result without modeling or bounding feed latency."
+    ]
+  }
+]

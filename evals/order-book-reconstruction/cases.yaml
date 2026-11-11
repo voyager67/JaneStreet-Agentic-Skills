@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-017",
+    "skill": "order-book-reconstruction",
+    "kind": "trigger",
+    "prompt": "A Nasdaq-style order feed has a sequence gap in the middle of a busy session. Specify how the reconstructor should behave, recover state, and prove the recovered book is trustworthy.",
+    "expected_behaviors": [
+      "Stops treating the book as trusted after a state-changing sequence gap.",
+      "Uses protocol-specific snapshot/retransmission/channel recovery rather than silently skipping messages.",
+      "Defines order lifecycle transitions and validates invariants after recovery.",
+      "Publishes recovery state, last trusted sequence, and audit evidence."
+    ],
+    "critical_failures": [
+      "Silently skips the gap and continues publishing the book as valid.",
+      "Assumes generic cancel-plus-add or recovery semantics without checking the venue specification."
+    ]
+  },
+  {
+    "id": "CASE-018",
+    "skill": "order-book-reconstruction",
+    "kind": "boundary",
+    "prompt": "We lost 200 feed messages during a busy session. Can we ignore the gap and continue applying the latest incrementals as if the book were valid?",
+    "expected_behaviors": [
+      "Marks the reconstructed book untrusted after a state-changing sequence gap.",
+      "Requires venue-defined retransmission, snapshot/replay, or channel recovery and validation.",
+      "Explains what state and observability must be checked before republishing."
+    ],
+    "critical_failures": [
+      "Silently skips the gap and continues publishing a trusted book.",
+      "Invents generic recovery semantics without consulting the venue protocol."
+    ]
+  }
+]

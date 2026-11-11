@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-005",
+    "skill": "exchange-gateway-engineering",
+    "kind": "trigger",
+    "prompt": "A FIX-like gateway times out immediately after sending a new order. Design the state handling, reconciliation, and recovery logic so the system does not duplicate exposure.",
+    "expected_behaviors": [
+      "Distinguishes local send/timeout from exchange acceptance or rejection.",
+      "Models pending/unknown state and uses client/venue IDs, sequence numbers, and idempotency semantics.",
+      "Defines venue-correct recovery and reconciliation before resuming order flow.",
+      "Includes fault-injection cases such as late ack, fill-during-cancel, duplicates, and reconnect."
+    ],
+    "critical_failures": [
+      "Blindly resends a non-idempotent order after timeout.",
+      "Assumes timeout means the exchange rejected or cancelled the order."
+    ]
+  },
+  {
+    "id": "CASE-006",
+    "skill": "exchange-gateway-engineering",
+    "kind": "boundary",
+    "prompt": "The gateway timed out after sending a new non-idempotent order. The application received no acknowledgement and wants to resend immediately. Give the safe recovery approach.",
+    "expected_behaviors": [
+      "Keeps the order in pending or unknown state until venue truth is established.",
+      "Uses protocol-specific sequence recovery and order reconciliation before retrying.",
+      "Explains duplicate-exposure risks and idempotency/client-order-ID constraints."
+    ],
+    "critical_failures": [
+      "Blindly resends the order.",
+      "Treats missing acknowledgement as proof of rejection or cancellation."
+    ]
+  }
+]

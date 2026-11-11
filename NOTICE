@@ -2,23 +2,28 @@ Jane Street Agentic Skills Repository
 Copyright 2026 HARSH SINGH
 
 Unless otherwise noted below, the original quantitative-trading skills,
-repository-authored documentation, validation scripts, and tests in this
-repository are licensed under the Apache License, Version 2.0. See LICENSE.
+the four additional learning/research skills, repository-authored
+documentation, supplemental references/examples, validation scripts, and
+tests in this repository are licensed under the Apache License, Version 2.0.
+See LICENSE.
 
 Third-party material and acknowledgements
 
-- The file socratic-tutor/SKILL.md is from Jane Street's public agent_skills
-  repository (https://github.com/janestreet/agent_skills). It is retained
-  unchanged and remains Copyright (c) 2026 Jane Street Group, LLC, under the
-  MIT License. The applicable original license is included at
-  socratic-tutor/LICENSE.md. This material is not relicensed under Apache-2.0.
-
+- The file skills/socratic-tutor/SKILL.md is from Jane Street's public
+  agent_skills repository (https://github.com/janestreet/agent_skills). It is
+  retained unchanged and remains Copyright (c) 2026 Jane Street Group, LLC,
+  under the MIT License. The applicable original license is included at
+  skills/socratic-tutor/LICENSE.md. This material is not relicensed under
+  Apache-2.0.
+- The companion files in skills/socratic-tutor/references/ and
+  skills/socratic-tutor/examples/ are independently authored repository
+  material. They are not part of Jane Street's original skill and are
+  distributed under Apache-2.0.
 - Other projects, papers, documentation, specifications, and websites cited
   in README.md are acknowledged as references only. Their works are not
   included or relicensed by this repository unless explicitly stated. Their
   respective licenses, terms, attribution requirements, and trademarks remain
   applicable to those upstream materials.
-
 - The name Jane Street is used only to identify the source of the retained
   third-party skill and relevant public references. This project is
   independent and is not affiliated with, sponsored by, or endorsed by

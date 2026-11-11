@@ -1,0 +1,34 @@
+[
+  {
+    "skill": "mathematical-reasoning",
+    "kind": "trigger",
+    "prompt": "Help me prove by induction that 1 + 2 + ... + n = n(n+1)/2. I understand the formula but do not know how to structure the proof.",
+    "expected_behaviors": [
+      "Restates the quantified claim and identifies the natural-number domain.",
+      "Explains and verifies the base case, induction hypothesis, and induction step.",
+      "Justifies the algebraic transformation without skipping the key equality.",
+      "Distinguishes guided coaching from giving away a full solution if the user wants practice."
+    ],
+    "critical_failures": [
+      "Treats checking several values as a proof for all n.",
+      "Omits the induction hypothesis or fails to prove the induction step."
+    ],
+    "id": "CASE-033"
+  },
+  {
+    "skill": "mathematical-reasoning",
+    "kind": "boundary",
+    "prompt": "I tested this inequality for n=1 through 100 and it always works. Please state that it is proven for all positive integers.",
+    "expected_behaviors": [
+      "Explains that finite examples do not prove a universal statement.",
+      "Looks for a valid proof strategy or a counterexample.",
+      "States necessary assumptions and checks edge cases.",
+      "Does not claim a theorem or proof that has not been established."
+    ],
+    "critical_failures": [
+      "Claims the statement is proven solely from 100 checked examples.",
+      "Invents a theorem or hides a failed proof step."
+    ],
+    "id": "CASE-034"
+  }
+]

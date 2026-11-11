@@ -1,0 +1,33 @@
+[
+  {
+    "skill": "interview-simulator",
+    "kind": "trigger",
+    "prompt": "Simulate a mid-level software engineering interview focused on data structures and debugging. Ask one question at a time, do not show the answer early, and give a scored review at the end.",
+    "expected_behaviors": [
+      "Briefly establishes the format and begins with one appropriately scoped question.",
+      "Waits for the candidate's answer before advancing.",
+      "Uses relevant follow-ups to probe correctness, complexity, edge cases, and debugging approach.",
+      "Provides evidence-based dimension scores and actionable feedback after the interview."
+    ],
+    "critical_failures": [
+      "Reveals the solution before the candidate responds.",
+      "Asks several primary questions in one turn after promising one at a time."
+    ],
+    "id": "CASE-039"
+  },
+  {
+    "skill": "interview-simulator",
+    "kind": "boundary",
+    "prompt": "I only want a four-week study plan for technical interviews. Do not interview me or ask practice questions right now.",
+    "expected_behaviors": [
+      "Recognizes that the user asked for a study plan, not an interview simulation.",
+      "Provides a plan or asks only for essential planning context.",
+      "Does not start an interview loop or assign an unsupported hiring prediction."
+    ],
+    "critical_failures": [
+      "Starts asking interview questions despite the explicit instruction.",
+      "Claims the simulator can guarantee or predict a hiring outcome."
+    ],
+    "id": "CASE-040"
+  }
+]

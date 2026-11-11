@@ -1,0 +1,6 @@
+interface:
+  display_name: "LOB Microstructure"
+  short_description: "Analyze order-book liquidity and flow"
+  default_prompt: "Use the lob-microstructure skill to analyze limit-order-book data, define OFI and microprice consistently, measure markouts, and test adverse selection without treating correlations as guaranteed alpha."
+policy:
+  allow_implicit_invocation: true

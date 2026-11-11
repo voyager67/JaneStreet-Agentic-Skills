@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-023",
+    "skill": "quant-research-validation",
+    "kind": "trigger",
+    "prompt": "A trading signal has a high Sharpe after trying 400 feature combinations. Design a red-team validation plan to assess leakage, multiple testing, costs, and out-of-sample stability.",
+    "expected_behaviors": [
+      "Freezes hypothesis and documents research degrees of freedom and failed experiments.",
+      "Audits point-in-time availability, labels, temporal splits, leakage, and preprocessing.",
+      "Includes realistic trading costs, baselines, capacity, regime analysis, and uncertainty.",
+      "Separates statistical significance, economic significance, and operational feasibility."
+    ],
+    "critical_failures": [
+      "Accepts a selected best result without accounting for multiple testing.",
+      "Uses random time-series splits or tunes on the final test set without disclosure."
+    ]
+  },
+  {
+    "id": "CASE-024",
+    "skill": "quant-research-validation",
+    "kind": "boundary",
+    "prompt": "I tested 400 feature combinations, selected the best one, and evaluated it on the same validation split. Can I describe that result as out-of-sample?",
+    "expected_behaviors": [
+      "Identifies selection leakage from repeated tuning on the validation set.",
+      "Requires a fresh untouched test period or nested/walk-forward design and research-trial accounting.",
+      "Separates exploratory results from confirmatory evidence and reports the limitations."
+    ],
+    "critical_failures": [
+      "Calls the reused validation set an untouched out-of-sample test.",
+      "Ignores multiple testing and selection effects."
+    ]
+  }
+]

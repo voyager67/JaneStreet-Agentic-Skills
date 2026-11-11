@@ -1,0 +1,6 @@
+interface:
+  display_name: "Socratic Tutor"
+  short_description: "Learn a topic through structured questioning"
+  default_prompt: "Use the socratic-tutor skill only when the user asks for ongoing teaching, tutoring, quizzing, or drilling to mastery. Do not start the tutoring loop for a one-off explanation request."
+policy:
+  allow_implicit_invocation: true

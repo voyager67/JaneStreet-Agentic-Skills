@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-007",
+    "skill": "execution-analysis",
+    "kind": "trigger",
+    "prompt": "Compare two execution algos on a parent buy order. We have decision price, arrival mid, child fills, cancels, fees, and unfilled quantity. Propose a transaction-cost analysis.",
+    "expected_behaviors": [
+      "Freezes the benchmark before inspecting outcomes and explains why it fits the objective.",
+      "Defines signed implementation-shortfall and opportunity-cost conventions with units.",
+      "Includes unfilled quantity, fees, slippage, impact proxies, fill/completion, and matched populations.",
+      "Segments outcomes and reports sample sizes and uncertainty."
+    ],
+    "critical_failures": [
+      "Drops unfilled orders or selects the benchmark after seeing results.",
+      "Calls simple benchmark outperformance alpha without a causal design."
+    ]
+  },
+  {
+    "id": "CASE-008",
+    "skill": "execution-analysis",
+    "kind": "boundary",
+    "prompt": "Our algo has better VWAP than a competitor, but we excluded unfilled orders and selected VWAP after seeing the results. Can we declare it superior?",
+    "expected_behaviors": [
+      "Identifies post-hoc benchmark selection and completion-only survivorship bias.",
+      "Requires a predeclared objective/benchmark and explicit opportunity cost for unfilled quantity.",
+      "Calls for matched parent orders, costs, uncertainty, and appropriately qualified conclusions."
+    ],
+    "critical_failures": [
+      "Declares superiority from the selected benchmark and completed orders only.",
+      "Omits opportunity cost or ignores selection bias."
+    ]
+  }
+]

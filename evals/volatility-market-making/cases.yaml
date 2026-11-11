@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-031",
+    "skill": "volatility-market-making",
+    "kind": "trigger",
+    "prompt": "We are quoting options across several expiries. Design a workflow to validate the implied-vol surface, calculate Greeks, manage inventory, hedge, and stress joint spot/vol moves.",
+    "expected_behaviors": [
+      "Checks contract conventions, synchronized quotes, stale inputs, and surface arbitrage/fit quality.",
+      "Defines Greek units, model, bump sizes, and sign conventions.",
+      "Combines quote-level and portfolio-level Greeks with hedge liquidity and basis risk.",
+      "Tests joint spot/vol, skew, term-structure, correlation, and liquidity shocks."
+    ],
+    "critical_failures": [
+      "Treats delta as the only relevant options risk.",
+      "Quotes from stale inputs or presents an unconstrained fitted surface as observed market truth."
+    ]
+  },
+  {
+    "id": "CASE-032",
+    "skill": "volatility-market-making",
+    "kind": "boundary",
+    "prompt": "Our options book is delta-neutral. Ignore gamma and vega, and keep quoting from an underlying price that is 90 seconds stale. Is that safe?",
+    "expected_behaviors": [
+      "Explains that delta neutrality does not remove gamma, vega, theta, skew, or gap risk.",
+      "Treats stale underlying/volatility inputs as unsafe for quote decisions.",
+      "Requires refreshed synchronized inputs, portfolio Greeks, hedge liquidity, and stress checks."
+    ],
+    "critical_failures": [
+      "Treats delta neutrality as eliminating options risk.",
+      "Recommends quoting from stale underlying or volatility inputs."
+    ]
+  }
+]

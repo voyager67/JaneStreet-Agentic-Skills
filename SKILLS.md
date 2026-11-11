@@ -1,5 +1,29 @@
 # Skill index
 
-This repository contains 15 original quantitative-trading and trading-systems skills plus the unmodified Jane Street `socratic-tutor` reference skill. See [README.md](README.md) for the catalogue and credits.
+All skill packages are stored under `skills/`. The collection contains 20 skills: 15 original quantitative-trading and trading-systems skills, four additional learning/research skills, and the retained Jane Street Socratic Tutor.
 
-New skills: `lob-microstructure`, `market-making`, `etf-arbitrage`, `order-book-reconstruction`, `queue-position-modeling`, `hft-market-replay`, `execution-analysis`, `quant-research-validation`, `tick-data-engineering`, `low-latency-performance`, `exchange-gateway-engineering`, `agent-based-market-simulation`, `pre-trade-risk-controls`, `volatility-market-making`, and `production-trading-operations`.
+## Existing quantitative and trading-systems skills
+- `agent-based-market-simulation`
+- `etf-arbitrage`
+- `exchange-gateway-engineering`
+- `execution-analysis`
+- `hft-market-replay`
+- `lob-microstructure`
+- `low-latency-performance`
+- `market-making`
+- `order-book-reconstruction`
+- `pre-trade-risk-controls`
+- `production-trading-operations`
+- `quant-research-validation`
+- `queue-position-modeling`
+- `tick-data-engineering`
+- `volatility-market-making`
+
+## Learning and research skills
+- `socratic-tutor` — Jane Street original; retained byte-for-byte under MIT.
+- `mathematical-reasoning`
+- `code-understanding`
+- `research-paper-tutor`
+- `interview-simulator`
+
+See [README.md](README.md) for descriptions, [ROADMAP.md](ROADMAP.md) for milestones, and [COMPATIBILITY.md](COMPATIBILITY.md) for installation.

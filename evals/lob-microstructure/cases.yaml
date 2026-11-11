@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-011",
+    "skill": "lob-microstructure",
+    "kind": "trigger",
+    "prompt": "For an L2 book, I have best bid/ask prices and sizes. Explain how to calculate queue imbalance and microprice, then design an honest test of whether they predict the next mid-price move.",
+    "expected_behaviors": [
+      "Defines queue imbalance and microprice with explicit bid/ask size notation and denominator handling.",
+      "Distinguishes snapshot imbalance from event-level OFI.",
+      "Specifies horizon, timestamps, data-quality filters, dependent-data uncertainty, and out-of-sample testing.",
+      "Frames predictive association as conditional evidence, not a guaranteed signal."
+    ],
+    "critical_failures": [
+      "Calls a snapshot size difference the Cont-Kukanov-Stoikov event-level OFI measure.",
+      "Claims a profitable alpha from correlation alone."
+    ]
+  },
+  {
+    "id": "CASE-012",
+    "skill": "lob-microstructure",
+    "kind": "boundary",
+    "prompt": "Snapshot L2 imbalance predicts the next tick 65% of the time in-sample. Can I call it event-level OFI alpha and start trading it?",
+    "expected_behaviors": [
+      "Distinguishes snapshot queue imbalance from event-level OFI.",
+      "Rejects in-sample accuracy as sufficient evidence of deployable alpha.",
+      "Requires temporal out-of-sample tests, costs, data-quality checks, and uncertainty."
+    ],
+    "critical_failures": [
+      "Mislabels snapshot imbalance as event-level OFI.",
+      "Claims profitable alpha from in-sample accuracy alone."
+    ]
+  }
+]

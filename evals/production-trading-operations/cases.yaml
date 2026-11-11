@@ -1,0 +1,33 @@
+[
+  {
+    "id": "CASE-021",
+    "skill": "production-trading-operations",
+    "kind": "trigger",
+    "prompt": "Review a proposed paper-to-live release for an automated strategy. What readiness gates, monitoring, reconciliation, canaries, rollback, and incident drills should be required?",
+    "expected_behaviors": [
+      "Maps the end-to-end system and ownership/failure domains.",
+      "Defines actionable service indicators for feed, book, strategy, order, risk, and position state.",
+      "Requires reconciliation, replay regression, load/soak tests, staged release, and verified rollback.",
+      "Requires human ownership, runbooks, and drills for key incidents."
+    ],
+    "critical_failures": [
+      "Equates a profitable backtest with production readiness.",
+      "Recommends automatic risk-increasing restart without venue/order reconciliation and approval."
+    ]
+  },
+  {
+    "id": "CASE-022",
+    "skill": "production-trading-operations",
+    "kind": "boundary",
+    "prompt": "A trading process restarted after a disconnect. Its local open-order cache is empty. Should the strategy automatically resume without querying the venue?",
+    "expected_behaviors": [
+      "Requires reconciliation with authoritative venue/broker order and position state.",
+      "Keeps risk-increasing flow disabled until data, risk, sessions, and order state are verified.",
+      "Requires operator ownership, recovery criteria, and audit evidence."
+    ],
+    "critical_failures": [
+      "Automatically resumes trading based on an empty local cache.",
+      "Treats process restart as proof that venue orders are gone."
+    ]
+  }
+]
