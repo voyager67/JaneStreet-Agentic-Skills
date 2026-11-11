@@ -1,6 +1,0 @@
-interface:
-  display_name: "Queue Position Modeling"
-  short_description: "Estimate passive queue and fill risk"
-  default_prompt: "Use the queue-position-modeling skill to compare MBO and L2 observability, build conservative and probabilistic queue models, calibrate held-out fills, and report uncertainty bounds."
-policy:
-  allow_implicit_invocation: true

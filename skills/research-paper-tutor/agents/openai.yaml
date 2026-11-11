@@ -1,6 +1,0 @@
-interface:
-  display_name: "Research Paper Tutor"
-  short_description: "Read, explain, and critically assess papers"
-  default_prompt: "Use the research-paper-tutor skill to walk through this paper. Separate the authors' claims from the evidence, explain the key method and equations, cite the exact sections or figures available, and identify limitations and reproduction gaps."
-policy:
-  allow_implicit_invocation: true

@@ -1,6 +1,0 @@
-interface:
-  display_name: "Low-Latency Performance"
-  short_description: "Profile tail latency in trading systems"
-  default_prompt: "Use the low-latency-performance skill to define end-to-end timing, profile measured bottlenecks, compare latency distributions, and retest correctness under load."
-policy:
-  allow_implicit_invocation: true

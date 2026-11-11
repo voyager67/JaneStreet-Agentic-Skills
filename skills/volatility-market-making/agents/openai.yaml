@@ -1,6 +1,0 @@
-interface:
-  display_name: "Volatility Market Making"
-  short_description: "Research options quoting and Greeks risk"
-  default_prompt: "Use the volatility-market-making skill to validate implied-volatility surfaces, calculate Greeks with explicit conventions, design quote adjustments, hedge risk, and stress options inventory."
-policy:
-  allow_implicit_invocation: true

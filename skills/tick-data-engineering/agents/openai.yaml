@@ -1,6 +1,0 @@
-interface:
-  display_name: "Tick Data Engineering"
-  short_description: "Build reliable market-data pipelines"
-  default_prompt: "Use the tick-data-engineering skill to define event schemas, preserve immutable raw data, validate sequencing and timestamps, quarantine defects, and build reproducible datasets."
-policy:
-  allow_implicit_invocation: true

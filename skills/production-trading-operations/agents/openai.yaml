@@ -1,6 +1,0 @@
-interface:
-  display_name: "Production Trading Operations"
-  short_description: "Review trading production readiness"
-  default_prompt: "Use the production-trading-operations skill to review system dependencies, telemetry, reconciliation, release gates, incident runbooks, drills, and safe recovery."
-policy:
-  allow_implicit_invocation: true

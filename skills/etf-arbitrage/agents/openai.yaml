@@ -1,6 +1,0 @@
-interface:
-  display_name: "ETF Arbitrage Research"
-  short_description: "Analyze ETF basket and AP economics"
-  default_prompt: "Use the etf-arbitrage skill to reconstruct a synchronized ETF basket value, analyze creation/redemption constraints, and estimate two-sided costs and residual risks. Do not treat stale NAV as executable fair value."
-policy:
-  allow_implicit_invocation: true
